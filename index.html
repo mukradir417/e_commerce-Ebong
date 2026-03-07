@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eBong | Premium Fashion</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="style.css?v=15">
+    
+    <style>
+        /* ==========================================
+           ⭐ UNIVERSAL & RESPONSIVE FIX
+           ========================================== */
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; overflow-x: hidden; }
+        
+        /* 🔴 Login Screen Styles */
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #111; display: flex; justify-content: center; align-items: center; z-index: 10000; padding: 20px; }
+        .login-box { background: #fff; padding: 40px; border-radius: 10px; width: 100%; max-width: 350px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .login-box h2 { color: #d97d00; margin-top: 0; font-size: 28px; }
+        
+        /* Dashboard Styles */
+        #admin-dashboard { display: none; width: 100%; min-height: 100vh; }
+        
+        /* ⭐ Desktop Sidebar */
+        .sidebar { width: 250px; background: #111; color: #fff; height: 100vh; padding: 20px; box-sizing: border-box; position: fixed; overflow-y: auto; z-index: 100; }
+        .sidebar h2 { color: #d97d00; text-align: center; border-bottom: 1px solid #333; padding-bottom: 15px; margin-top: 0; }
+        .menu-item { padding: 15px; background: #222; margin-bottom: 10px; border-radius: 5px; cursor: pointer; font-weight: 600; transition: 0.3s; font-size: 14px; text-align: left; }
+        .menu-item:hover, .menu-item.active { background: #d97d00; color: #fff; }
+        
+        /* Main Content Area */
+        .main-content { flex: 1; padding: 40px; box-sizing: border-box; height: 100vh; overflow-y: auto; margin-left: 250px; background-color: #f4f7f6; width: calc(100% - 250px); }
+        .card { background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px; display: none; width: 100%; overflow-x: auto; }
+        .card.active { display: block; }
+        
+        /* Forms */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;}
+        .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-family: 'Poppins', sans-serif;}
+        .btn-submit { background: #111; color: #fff; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; transition: 0.3s;}
+        .btn-submit:hover { background: #d97d00; }
+        
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; min-width: 600px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; vertical-align: top; }
+        th { background-color: #f8f9fa; white-space: nowrap; }
+        .action-btn { padding: 8px 10px; border: none; cursor: pointer; border-radius: 3px; color: white; font-weight: bold; margin-bottom: 5px; display: inline-block; text-align: center; }
+        .btn-green { background: #28a745; } .btn-red { background: #dc3545; } .btn-blue { background: #007bff; } .btn-orange { background: #ff9800; }
+
+        /* Toggle Switch Styles */
+        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #28a745; }
+        input:checked + .slider:before { transform: translateX(26px); }
+
+        /* ⭐ Dashboard Analytics Cards CSS */
+        .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-box { background: linear-gradient(135deg, #111, #333); color: white; padding: 25px; border-radius: 12px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .stat-box.highlight { background: linear-gradient(135deg, #d97d00, #ff9800); }
+        .stat-box h4 { margin: 0 0 10px 0; font-size: 16px; font-weight: 400; opacity: 0.9; }
+        .stat-box h2 { margin: 0; font-size: 32px; font-weight: 800; }
+
+        /* ==========================================
+           💬 LIVE CHAT STYLES FOR ADMIN
+           ========================================== */
+        .chat-layout { display: flex; height: 600px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+        .chat-users-list { width: 300px; background: #f9f9f9; border-right: 1px solid #ddd; overflow-y: auto; }
+        .chat-user-item { padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: flex-start; }
+        .chat-user-item:hover, .chat-user-item.active { background: #e6f2ff; border-left: 4px solid #007bff; }
+        .chat-user-info h4 { margin: 0; font-size: 14px; color: #333; }
+        .chat-user-info small { color: #007bff; font-weight: bold; font-size: 11px; }
+        .chat-user-info p { margin: 5px 0 0 0; font-size: 12px; color: #777; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+        .unread-badge { background: red; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
+        
+        .chat-window { flex: 1; display: flex; flex-direction: column; background: #fff; position: relative; }
+        .chat-header { padding: 15px; background: #f1f1f1; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background: #fafafa; }
+        .msg-bubble { max-width: 70%; padding: 10px 15px; border-radius: 15px; font-size: 13px; line-height: 1.4; position: relative; }
+        .msg-customer { background: #fff; border: 1px solid #ddd; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .msg-admin { background: #007bff; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .msg-time { font-size: 10px; color: #999; margin-top: 5px; display: block; text-align: right; }
+        .msg-admin .msg-time { color: #d1e8ff; }
+        
+        .chat-input-area { padding: 15px; background: #fff; border-top: 1px solid #ddd; display: flex; gap: 10px; }
+        .chat-input-area input { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 20px; outline: none; font-family: 'Poppins', sans-serif; }
+        .chat-input-area button { background: #007bff; color: white; border: none; padding: 0 20px; border-radius: 20px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .chat-input-area button:hover { background: #0056b3; }
+        .no-chat-selected { flex: 1; display: flex; justify-content: center; align-items: center; color: #888; flex-direction: column; }
+
+        /* ==========================================
+           ⭐ CUSTOMER DETAILS MODAL STYLES
+           ========================================== */
+        .modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); overflow-y: auto; }
+        .modal-content { background-color: #f4f7f6; margin: 5% auto; border-radius: 12px; width: 90%; max-width: 800px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.3); overflow: hidden; }
+        .modal-header { background: #111; color: #fff; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h2 { margin: 0; font-size: 20px; color: #d97d00; }
+        .close-btn { color: #fff; font-size: 28px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .close-btn:hover { color: #d97d00; }
+        .modal-body { padding: 20px; }
+
+        .customer-stats { display: flex; gap: 15px; margin-bottom: 20px; }
+        .c-stat-box { flex: 1; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ddd; text-align: center; }
+        .c-stat-box h4 { margin: 0 0 5px 0; color: gray; font-size: 12px; }
+        .c-stat-box h3 { margin: 0; color: #111; font-size: 20px; }
+
+        .order-history-list { max-height: 350px; overflow-y: auto; }
+        .history-card { background: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        .history-header { display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; padding-bottom: 10px; margin-bottom: 10px; font-size: 13px; }
+
+        /* ⭐ Address Book in Admin */
+        .admin-addr-card { background: #fff8e1; border: 1px solid #ffe082; padding: 10px; border-radius: 6px; margin-bottom: 10px; font-size: 12px; }
+        .admin-addr-card h5 { margin: 0 0 5px 0; color: #d84315; }
+
+        /* ⭐ POS Cart Box */
+        .pos-cart-box { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+        .pos-cart-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px; }
+        .pos-cart-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+        /* ==========================================
+           📱 MOBILE RESPONSIVENESS
+           ========================================== */
+        @media (max-width: 768px) {
+            #admin-dashboard { flex-direction: column; }
+            
+            /* Sidebar becomes a bottom navigation bar */
+            .sidebar { 
+                position: fixed; 
+                bottom: 0; 
+                left: 0; 
+                width: 100%; 
+                height: auto; 
+                display: flex; 
+                overflow-x: auto; 
+                padding: 10px; 
+                background: #111; 
+                z-index: 1000; 
+                white-space: nowrap;
+                box-shadow: 0 -5px 10px rgba(0,0,0,0.1);
+            }
+            .sidebar h2 { display: none; } /* Hide logo on mobile menu */
+            .menu-item { 
+                margin: 0 5px; 
+                padding: 10px 15px; 
+                font-size: 12px; 
+                text-align: center; 
+                border-radius: 20px;
+                flex-shrink: 0;
+            }
+            #logout-btn { margin-top: 0; }
+
+            /* Main Content Adjustments */
+            .main-content { 
+                margin-left: 0; 
+                width: 100%; 
+                padding: 15px; 
+                padding-bottom: 80px; /* Space for bottom nav */
+                height: auto;
+            }
+
+            .card { padding: 15px; }
+            .card h3 { font-size: 18px; margin-top: 0; }
+
+            /* Table wrapper for mobile scrolling */
+            .table-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            table { font-size: 12px; }
+            
+            /* Two column grid adjustment for Spin form */
+            #spinSettingsForm > div { grid-template-columns: 1fr !important; }
+
+            /* Chat Mobile Fix */
+            .chat-layout { flex-direction: column; height: 80vh; }
+            .chat-users-list { width: 100%; height: 200px; border-right: none; border-bottom: 1px solid #ddd; }
+
+            .customer-stats { flex-direction: column; }
+        }
+        
+        /* ==========================================
+           ⭐ UPDATED: ORDER TRACKER MODAL STYLES
+           ========================================== */
+        .tracker-modal-content {
+            background: #ffffff; 
+            padding: 30px; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2); 
+            position: relative;
+            max-width: 500px;
+            margin: 10% auto;
+            width: 90%;
+        }
+        
+        .tracker-input-group { 
+            display: flex; 
+            gap: 12px; 
+            margin-top: 15px;
+        }
+        
+        .tracker-input { 
+            flex: 1; 
+            padding: 14px 20px; 
+            border: 2px solid #e0e0e0; 
+            border-radius: 10px; 
+            font-family: 'Poppins', sans-serif; 
+            font-size: 15px;
+            outline: none; 
+            transition: all 0.3s ease;
+            background: #fdfdfd;
+        }
+        
+        .tracker-input:focus { 
+            border-color: var(--brand-color); 
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(217, 125, 0, 0.1);
+        }
+        
+        .tracker-btn { 
+            background: var(--brand-color); 
+            color: white; 
+            border: none; 
+            padding: 0 25px; 
+            border-radius: 10px; 
+            font-weight: 700; 
+            font-size: 15px;
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .tracker-btn:hover {
+            background: #b56800; /* Darker brand color */
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(217, 125, 0, 0.3);
+        }
+
+        .tracker-result { 
+            margin-top: 25px; 
+            display: none; 
+            padding: 20px; 
+            border-radius: 12px; 
+            background: #f9f9fc; 
+            border: 1px solid #eee; 
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .timeline { list-style: none; padding: 0; margin: 0; position: relative; }
+        .timeline::before { content: ''; position: absolute; top: 0; bottom: 0; left: 15px; width: 2px; background: #ddd; }
+        .timeline li { margin-bottom: 15px; position: relative; padding-left: 40px; }
+        .timeline li::before { content: ''; position: absolute; left: 8px; top: 0; width: 16px; height: 16px; border-radius: 50%; background: #ccc; border: 2px solid #fff; }
+        .timeline li.active::before { background: var(--brand-color); box-shadow: 0 0 0 3px rgba(217, 125, 0, 0.2); }
+        .timeline li.completed::before { background: #28a745; }
+        .timeline li h4 { margin: 0 0 5px 0; font-size: 14px; color: var(--text-dark); }
+        .timeline li p { margin: 0; font-size: 12px; color: var(--text-light); }
+
+        @media (max-width: 600px) {
+            .tracker-input-group { flex-direction: column; }
+            .tracker-btn { padding: 14px; justify-content: center; }
+        }
+
+        /* Track Order Floating Button */
+        .track-toggle-btn {
+            background-color: var(--brand-color);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(217, 125, 0, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            transition: 0.3s;
+        }
+        .track-toggle-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(217, 125, 0, 0.6);
+        }
+
+        /* ⭐ SVG Icons Color Fix */
+        .svg-icon {
+            width: 24px;
+            height: 24px;
+            stroke: #222;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        /* ⭐ NEW: WALLET BUTTON STYLES (Tap for Balance) */
+        .wallet-btn-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: #fff;
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: 0.3s;
+        }
+
+        .wallet-btn-container:hover {
+            border-color: var(--brand-color);
+            box-shadow: 0 4px 8px rgba(217, 125, 0, 0.15);
+        }
+
+        .wallet-amount-text {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--brand-color);
+            transition: 0.3s;
+        }
+
+        .wallet-sub-text {
+            font-size: 9px;
+            font-weight: 600;
+            color: gray;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        /* Security PIN Modal Styles */
+        .pin-box {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .pin-box input {
+            width: 50px;
+            height: 60px;
+            font-size: 24px;
+            text-align: center;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            outline: none;
+            transition: 0.3s;
+            font-family: 'Poppins', sans-serif;
+            font-weight: bold;
+        }
+        .pin-box input:focus {
+            border-color: var(--brand-color);
+            box-shadow: 0 0 10px rgba(217, 125, 0, 0.2);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="about-bar">
+        <span>🏆 100% Authentic Products</span> | 
+        <span>🚚 Nationwide Fast Delivery</span> | 
+        <span>🛡️ Easy Return Policy</span>
+    </div>
+
+    <div class="top-bar" style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 15px; padding: 8px 10px;">
+        <span style="font-weight: 700; letter-spacing: 1px; color: #fff;">🎧 SUPPORT 24/7</span>
+        <span id="top-phone" style="font-weight: 600; color: #fff;">📞 +8801572-921697</span>
+        <div style="display: flex; gap: 10px;">
+            <a href="#" id="top-wa-link" target="_blank" style="background: #25D366; color: white; padding: 4px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: 0.3s; text-decoration: none;">WhatsApp</a>
+            <a href="#" id="top-fb-link" target="_blank" style="background: #0084FF; color: white; padding: 4px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: 0.3s; text-decoration: none;">Messenger</a>
+        </div>
+    </div>
+
+    <div class="headline-bar" style="background: #111; color: #fff; padding: 5px 0; font-size: 14px;">
+        <marquee id="dynamic-headline">Welcome to eBong! Premium Fashion Brand.</marquee>
+    </div>
+
+    <header class="main-header container" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0;">
+        
+        <div class="header-left" style="flex: 1; display: flex; align-items: center; gap: 10px;">
+            <div class="wallet-btn-container" id="wallet-trigger-btn" onclick="toggleWalletBalance()">
+                <span class="wallet-amount-text" id="wallet-balance-display">💰 ব্যালেন্স দেখুন</span>
+            </div>
+            <button id="manage-wallet-btn" style="background: #111; color: white; border: none; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer; display: none;">Manage</button>
+        </div>
+
+        <div class="header-center" style="flex: 2; text-align: center;">
+            <div class="header-logo">
+                <a href="index.html">
+                    <img src="logo.png" alt="eBong Logo" onerror="this.style.display='none'; document.getElementById('text-logo').style.display='block';">
+                </a>
+            </div>
+            <h1 id="text-logo" style="color: var(--brand-color); margin: 0; font-size: 38px; font-weight: 800; font-style: italic; display: none;">eBong</h1>
+        </div>
+
+        <div class="header-right" style="flex: 1; display: flex; justify-content: flex-end; gap: 15px; position: relative; align-items: center;">
+            
+            <button class="icon-btn" id="header-spin-btn" title="Spin & Win" style="position: relative; display: none;">
+                <span style="font-size: 24px;">🎡</span>
+                <span class="cart-badge" id="spin-ticket-count" style="position: absolute; top: -5px; right: -8px; background: #d97d00; color: white; font-size: 11px; min-width: 20px; height: 20px; display: flex; justify-content: center; align-items: center; border-radius: 50%; font-weight: 700; border: 2px solid #fff;">0</span>
+            </button>
+
+            <button class="icon-btn" id="notification-btn" title="Notifications" style="display: none; position: relative;"> 
+                <svg class="svg-icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                <span class="cart-badge" id="noti-count" style="display: none; position: absolute; top: -5px; right: -5px; background: red; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px;">0</span>
+            </button>
+
+            <div style="position: relative; display: flex; align-items: center; gap: 10px;">
+                <button class="icon-btn" id="user-account-btn" title="My Account">
+                    <svg class="svg-icon" id="user-svg" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </button>
+                <button id="direct-logout-btn" style="display: none; background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 12px; transition: 0.3s; box-shadow: 0 2px 5px rgba(220,53,69,0.3);">Logout</button>
+                
+                <div class="dropdown-menu" id="user-dropdown-menu">
+                    <div style="padding: 10px 15px; border-bottom: 1px solid var(--border-color); background: var(--bg-light-grey);">
+                        <strong style="font-size: 14px;" id="dropdown-user-name">Customer</strong><br>
+                        <small style="color: gray; font-size: 11px;" id="dropdown-user-email">email@example.com</small>
+                    </div>
+                    <div class="dropdown-item" onclick="openProfileTab('orders')">📦 My Orders</div>
+                    <div class="dropdown-item" onclick="openProfileTab('address')">📍 Address Book</div>
+                    <div class="dropdown-item" onclick="openProfileTab('wishlist')">❤️ My Wishlist</div>
+                </div>
+            </div>
+
+            <button class="icon-btn cart-icon" id="cart-btn" style="position: relative;">
+                <svg class="svg-icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+                <span class="cart-badge" id="cart-count" style="position: absolute; top: -5px; right: -8px; background: #e53935; color: white; font-size: 13px; min-width: 22px; height: 22px; display: flex; justify-content: center; align-items: center; border-radius: 50%; font-weight: 700; border: 3px solid #fff; box-shadow: 0 3px 8px rgba(0,0,0,0.2);">0</span>
+            </button>
+            
+            <div class="notification-panel" id="notification-panel">
+                <div class="noti-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee;">
+                    <h4 style="margin: 0; color: var(--brand-color);">Notifications</h4>
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="clearAllNotifications()" style="background: none; border: none; color: #007bff; font-size: 12px; cursor: pointer; font-weight: bold;">Clear All</button>
+                        <span onclick="document.getElementById('notification-panel').classList.remove('show')" style="cursor: pointer; font-size: 16px; color: #888; font-weight: bold;">&times;</span>
+                    </div>
+                </div>
+                <div id="notification-list">
+                    <p style="text-align: center; color: gray; padding: 20px; font-size: 13px;">No new notifications</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div id="admin-notification-popup" style="display:none; position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: #111; color: #fff; padding: 15px 25px; border-radius: 10px; z-index: 9999; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border-left: 5px solid var(--brand-color); min-width: 300px; max-width: 90%; text-align: center;">
+        <span onclick="document.getElementById('admin-notification-popup').style.display='none'" style="position:absolute; top:5px; right:10px; cursor:pointer; color:gray; font-size:20px;">&times;</span>
+        <h4 style="margin:0 0 5px 0; color:var(--brand-color);">🔔 Message from Admin</h4>
+        <p id="admin-notification-text" style="margin:0; font-size:14px; line-height: 1.5;"></p>
+    </div>
+
+    <div id="tracker-modal" class="modal" style="z-index: 8000;">
+        <div class="tracker-modal-content">
+            <span class="close-btn" id="close-tracker-modal" style="position: absolute; right: 20px; top: 15px; font-size: 32px; cursor: pointer; color: #333; background: #eee; width: 40px; height: 40px; text-align: center; line-height: 40px; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">&times;</span>
+            
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+                <span style="font-size: 28px;">🚚</span>
+                <h2 style="margin: 0; color: var(--brand-color);">Track Your Order</h2>
+            </div>
+            
+            <p style="font-size: 13px; color: gray; margin-bottom: 15px;">Enter the last 5 digits of your phone number (e.g., 23344) or your full Tracking ID.</p>
+            
+            <div class="tracker-input-group">
+                <input type="text" id="track-id-input" class="tracker-input" placeholder="Tracking ID or Phone Digits...">
+                <button class="tracker-btn" onclick="trackOrder()">Track Status</button>
+            </div>
+            
+            <div id="tracker-result" class="tracker-result">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #ccc; padding-bottom: 10px; margin-bottom: 15px;">
+                    <strong style="color: var(--brand-color); font-size: 16px;">ID: <span id="t-id">N/A</span></strong>
+                    <span id="t-status-badge" style="background: orange; color: white; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; letter-spacing: 0.5px;">Pending</span>
+                </div>
+                
+                <ul class="timeline" id="tracking-timeline">
+                    </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="wallet-modal" class="modal" style="z-index: 8500;">
+        <div class="modal-content" style="max-width: 450px; padding: 0; overflow: hidden; background: #f9f9f9;">
+            <div style="background: linear-gradient(135deg, #111, #333); padding: 30px 20px; text-align: center; color: white; position: relative;">
+                <span class="close-btn" onclick="document.getElementById('wallet-modal').style.display='none'; document.body.classList.remove('modal-open');" style="position: absolute; right: 15px; top: 15px; font-size: 28px; cursor: pointer; color: #fff; z-index: 10;">&times;</span>
+                <h3 style="margin: 0 0 5px 0; font-size: 16px; opacity: 0.9; color: #d97d00;">My eBong Wallet</h3>
+                <h1 style="margin: 0; font-size: 40px; font-weight: 800;">৳ <span id="wallet-dashboard-balance-main">0</span></h1>
+            </div>
+            
+            <div style="padding: 20px;">
+                <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                    <button onclick="openDepositModal()" style="flex: 1; padding: 15px; background: #28a745; color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(40,167,69,0.3); display: flex; flex-direction: column; align-items: center; gap: 5px;">
+                        <span style="font-size: 24px;">📥</span> Add Money
+                    </button>
+                    <button onclick="openWithdrawModal()" style="flex: 1; padding: 15px; background: #dc3545; color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(220,53,69,0.3); display: flex; flex-direction: column; align-items: center; gap: 5px;">
+                        <span style="font-size: 24px;">📤</span> Withdraw
+                    </button>
+                </div>
+
+                <div style="background: #fff; border-radius: 12px; border: 1px solid #ddd; padding: 15px;">
+                    <h4 style="margin: 0 0 10px 0; border-bottom: 1px solid #eee; padding-bottom: 10px;">📜 Transaction History</h4>
+                    <div id="wallet-history-list" style="max-height: 200px; overflow-y: auto;">
+                        <p style="text-align: center; color: gray; font-size: 13px; margin: 10px 0;">Loading transactions...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="deposit-modal" class="modal" style="z-index: 9500;">
+        <div class="modal-content" style="max-width: 400px; padding: 30px;">
+            <span class="close-btn" onclick="document.getElementById('deposit-modal').style.display='none';" style="position: absolute; right: 15px; top: 10px; font-size: 28px; cursor: pointer; color: #888;">&times;</span>
+            <h3 style="margin-top: 0; color: #28a745;">📥 Add Money</h3>
+            <p style="font-size: 13px; color: gray; margin-bottom: 20px;">Send money to our official numbers and submit the details below.</p>
+            
+            <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; font-size: 13px;">
+                <p style="margin: 0 0 5px 0;"><strong>bKash (Personal):</strong> <span id="dep-bkash-num" style="color:var(--brand-color);">Loading...</span></p>
+                <p style="margin: 0 0 5px 0;"><strong>Nagad (Personal):</strong> <span id="dep-nagad-num" style="color:var(--brand-color);">Loading...</span></p>
+                <p style="margin: 0;"><strong>Rocket (Personal):</strong> <span id="dep-rocket-num" style="color:var(--brand-color);">Loading...</span></p>
+            </div>
+
+            <form id="deposit-form">
+                <div class="form-group">
+                    <select id="dep_method" class="form-control" required>
+                        <option value="">Select Sent Method</option>
+                        <option value="bKash">bKash</option>
+                        <option value="Nagad">Nagad</option>
+                        <option value="Rocket">Rocket</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <input type="number" id="dep_amount" class="form-control" placeholder="Amount Sent (Tk)" min="50" required>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="dep_trxid" class="form-control" placeholder="Transaction ID (TrxID)" required>
+                </div>
+                <button type="submit" id="deposit-submit-btn" style="width: 100%; background: #28a745; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">Submit Request</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="withdraw-modal" class="modal" style="z-index: 9500;">
+        <div class="modal-content" style="max-width: 400px; padding: 30px;">
+            <span class="close-btn" onclick="document.getElementById('withdraw-modal').style.display='none';" style="position: absolute; right: 15px; top: 10px; font-size: 28px; cursor: pointer; color: #888;">&times;</span>
+            <h3 style="margin-top: 0; color: #dc3545;">📤 Withdraw Money</h3>
+            <p style="font-size: 13px; color: gray; margin-bottom: 20px;">Minimum withdraw amount is Tk 100.</p>
+            
+            <div style="background: #fff8e1; padding: 10px; border-radius: 8px; border: 1px solid #ffe082; margin-bottom: 15px; text-align: center;">
+                <p style="margin: 0; font-size: 12px;">Available Balance</p>
+                <strong style="color: #d84315; font-size: 20px;">Tk <span id="with-available-bal">0</span></strong>
+            </div>
+
+            <form id="withdraw-form">
+                <div class="form-group">
+                    <select id="with_method" class="form-control" required>
+                        <option value="">Withdraw Type</option>
+                        <option value="Mobile Recharge">Mobile Recharge</option>
+                        <option value="bKash">bKash (Send Money)</option>
+                        <option value="Nagad">Nagad (Send Money)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <input type="tel" id="with_number" class="form-control" placeholder="Your Phone Number" required>
+                </div>
+                <div class="form-group">
+                    <input type="number" id="with_amount" class="form-control" placeholder="Amount (Tk)" min="100" required>
+                </div>
+                <button type="submit" id="withdraw-submit-btn" style="width: 100%; background: #dc3545; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">Request Withdraw</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="set-pin-modal" class="modal" style="z-index: 9000;">
+        <div class="modal-content" style="max-width: 400px; text-align: center; padding: 40px 30px;">
+            <span class="close-btn" onclick="document.getElementById('set-pin-modal').style.display='none'; document.body.classList.remove('modal-open');" style="position: absolute; right: 15px; top: 10px; font-size: 28px; cursor: pointer; color: #888;">&times;</span>
+            <div style="font-size: 50px; margin-bottom: 10px;">🔐</div>
+            <h2 style="color: var(--brand-color); margin-top: 0;">Set Wallet PIN</h2>
+            <p style="color: gray; font-size: 13px; margin-bottom: 20px;">Please create a 4-digit PIN to secure your wallet transactions.</p>
+            
+            <div class="pin-box" id="set-pin-inputs">
+                <input type="password" maxlength="1" oninput="moveToNext(this, 'set2')" id="set1">
+                <input type="password" maxlength="1" oninput="moveToNext(this, 'set3')" id="set2">
+                <input type="password" maxlength="1" oninput="moveToNext(this, 'set4')" id="set3">
+                <input type="password" maxlength="1" id="set4">
+            </div>
+
+            <button onclick="saveNewPin()" style="width: 100%; background: #111; color: #fff; border: none; padding: 14px; border-radius: 8px; font-weight: 800; font-size: 16px; cursor: pointer; margin-top: 15px;">Save PIN</button>
+        </div>
+    </div>
+
+    <div id="verify-pin-modal" class="modal" style="z-index: 9000;">
+        <div class="modal-content" style="max-width: 400px; text-align: center; padding: 40px 30px;">
+            <span class="close-btn" onclick="document.getElementById('verify-pin-modal').style.display='none'; document.body.classList.remove('modal-open');" style="position: absolute; right: 15px; top: 10px; font-size: 28px; cursor: pointer; color: #888;">&times;</span>
+            <div style="font-size: 50px; margin-bottom: 10px;">🔒</div>
+            <h2 style="color: #111; margin-top: 0;">Enter PIN</h2>
+            <p style="color: gray; font-size: 13px; margin-bottom: 20px;">Please enter your 4-digit Wallet PIN to continue.</p>
+            
+            <div class="pin-box" id="verify-pin-inputs">
+                <input type="password" maxlength="1" oninput="moveToNext(this, 'ver2')" id="ver1">
+                <input type="password" maxlength="1" oninput="moveToNext(this, 'ver3')" id="ver2">
+                <input type="password" maxlength="1" oninput="moveToNext(this, 'ver4')" id="ver3">
+                <input type="password" maxlength="1" id="ver4">
+            </div>
+
+            <p id="pin-error-msg" style="color: red; font-size: 12px; display: none; font-weight: bold; margin-top: 5px;">❌ Incorrect PIN. Try again.</p>
+
+            <button onclick="verifyEnteredPin()" style="width: 100%; background: var(--brand-color); color: #fff; border: none; padding: 14px; border-radius: 8px; font-weight: 800; font-size: 16px; cursor: pointer; margin-top: 15px;">Verify</button>
+            
+            <p style="font-size: 12px; color: gray; margin-top: 20px; cursor: pointer; text-decoration: underline;">Forgot PIN? Contact Support</p>
+        </div>
+    </div>
+
+
+    <div class="search-container">
+        <input type="text" id="main-search-bar" class="search-input" placeholder="Search for products, categories..." onkeyup="filterGlobalProducts()">
+        <button class="search-btn" onclick="filterGlobalProducts()">🔍</button>
+    </div>
+
+    <nav class="category-nav-bar" id="category-nav-bar">
+        <ul id="dynamic-category-menu">
+            </ul>
+    </nav>
+
+    <section class="banner-section container" style="margin-top: 10px;">
+        <div id="main-banner-slider" style="position: relative; width: 100%; max-height: 400px; overflow: hidden; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.05); background-color: var(--bg-light-grey);">
+            <img id="dynamic-banner" src="banner.jpg" alt="eBong Banner" class="main-banner-img" onerror="this.style.display='none'" style="width: 100%; height: auto; object-fit: contain;">
+        </div>
+        
+        <div id="banner-dots-container" style="text-align: center; margin-top: 10px; display: none;"></div>
+    </section>
+
+    <div id="all-categories-container" class="container" style="margin-top: 40px; margin-bottom: 50px;">
+        <p style="text-align: center; padding: 50px; font-size: 18px; color: gray;">Loading amazing products for you...</p>
+    </div>
+
+    <div id="sales-popup">
+        <img id="sp-img" src="" alt="Product" class="sales-popup-img">
+        <div class="sales-popup-text">
+            <p><b id="sp-name" style="color:var(--text-dark);">Someone</b> from <b id="sp-city">Dhaka</b> just bought</p>
+            <h4 id="sp-product">Premium Product</h4>
+            <span class="sales-time" id="sp-time">2 minutes ago</span>
+        </div>
+    </div>
+
+    <div id="product-details-modal" class="modal">
+        <div class="modal-content product-details-content" style="max-width: 850px; padding: 0; position: relative; overflow-y: auto; overflow-x: hidden; max-height: 90vh;">
+            <span class="close-btn" id="close-details-modal" style="position: absolute; right: 20px; top: 15px; font-size: 32px; cursor: pointer; z-index: 10; color: #333; background: #eee; width: 40px; height: 40px; text-align: center; line-height: 40px; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">&times;</span>
+            
+            <div class="details-layout">
+                
+                <div class="details-image-section" style="display: flex; flex-direction: column; align-items: center; position: relative;">
+                    <img id="main-detail-image" src="" alt="Product" onerror="this.style.display='none'" style="cursor: zoom-in; width: 100%; max-height: 400px; object-fit: contain; border-radius: 8px; margin-bottom: 15px;" onclick="openLightbox()">
+                    
+                    <div class="scroll-hint" style="color: var(--brand-color); font-weight: bold;">↓ Scroll for more details ↓</div>
+                    
+                    <div id="thumbnail-container" class="thumbnail-gallery" style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; width: 100%; justify-content: flex-start;"></div>
+                </div>
+                
+                <div class="details-info-section">
+                    <h2 id="detail-name">Product Name</h2>
+                    <p class="detail-code">Code: <span id="detail-code-text"></span></p>
+                    <div id="detail-price-area" class="detail-price"></div>
+                    
+                    <div class="stock-color-area">
+                        <p id="detail-stock-status"></p>
+                    </div>
+
+                    <div id="detail-color-area" style="margin-bottom: 15px; padding: 15px; background: var(--bg-light-grey); border-radius: 8px; border: 1px solid var(--border-color);">
+                        <p style="margin: 0 0 10px 0; font-weight: 700; font-size: 15px;">🎨 Select Color:</p>
+                        <div id="detail-color-options" style="display: flex; gap: 5px; flex-wrap: wrap;"></div>
+                    </div>
+
+                    <div id="detail-size-area" style="margin-bottom: 20px; padding: 15px; background: var(--bg-light-grey); border-radius: 8px; border: 1px solid var(--border-color);">
+                        <p style="margin: 0 0 10px 0; font-weight: 700; font-size: 15px;">📏 Select Size:</p>
+                        <div id="detail-size-options" style="display: flex; gap: 5px; flex-wrap: wrap;"></div>
+                    </div>
+
+                    <div class="detail-description">
+                        <strong style="font-size: 16px;">Description:</strong>
+                        <p id="detail-desc-text" style="color: var(--text-light); line-height: 1.8; margin-top: 5px;"></p>
+                    </div>
+
+                    <div class="details-action-btns" id="detail-action-btns" style="margin-top: 30px; padding-bottom: 20px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="checkout-modal" class="modal">
+        <div class="modal-content" style="max-width: 500px; margin: 20px auto; padding: 30px; border-radius: 20px;">
+            <span class="close-btn" id="close-modal" style="float: right; cursor: pointer; font-size: 32px; color: #333; background: #eee; width: 40px; height: 40px; text-align: center; line-height: 40px; border-radius: 50%;">&times;</span>
+            <h2 style="margin-bottom: 25px; font-size: 26px;">Your Cart</h2>
+            
+            <div id="cart-items-list" style="margin-bottom: 20px; font-size: 15px; max-height: 250px; overflow-y: auto; padding-right: 10px;"></div>
+            
+            <div class="cart-summary" style="background: var(--bg-light-grey); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                <p style="margin: 5px 0; display: flex; justify-content: space-between; font-size: 16px;"><span>Subtotal:</span> <strong>Tk <span id="cart-subtotal">0</span></strong></p>
+                <div style="margin: 15px 0;">
+                    <label style="font-size: 14px; font-weight: 700;">Delivery Area:</label>
+                    <select id="delivery_zone" class="form-control" style="margin-top: 8px;">
+                        <option value="60">Inside Rangpur (60 Tk)</option>
+                        <option value="120">Outside Rangpur (120 Tk)</option>
+                    </select>
+                </div>
+                <p style="margin: 5px 0; display: flex; justify-content: space-between; font-size: 16px;"><span>Delivery Charge:</span> <strong>Tk <span id="cart-delivery">60</span></strong></p>
+                <div id="free-del-msg" style="color:#2e7d32; font-size: 13px; font-weight:bold; display:none; text-align: right;">(Free Delivery! 🎉)</div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <input type="text" id="promo_input" placeholder="Promo Code" class="form-control" style="margin: 0;">
+                    <button type="button" id="apply_promo_btn" style="background: #111; color: #fff; border: none; padding: 0 20px; border-radius: 10px; cursor: pointer; font-weight: bold;">Apply</button>
+                </div>
+                <p id="promo_msg" style="font-size: 13px; margin-top: 8px; font-weight: bold;"></p>
+
+                <div id="spin-offer-container" style="display: none; background: linear-gradient(135deg, #fff3e0, #ffe0b2); padding: 20px; border-radius: 12px; border: 2px dashed #ff9800; margin-top: 20px; text-align: center;">
+                    <h4 style="margin: 0 0 8px 0; color: #d84315; font-size: 18px;">🎁 Lucky Spin Available!</h4>
+                    <p style="font-size: 13px; color: #555; margin-bottom: 15px; font-weight: 500;">Click below to spin the wheel and win exciting discounts or gifts for this order!</p>
+                    <button type="button" id="open-spin-modal-btn" style="background: #d84315; color: white; border: none; padding: 12px 25px; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; animation: pulse 1.5s infinite; box-shadow: 0 4px 15px rgba(216,67,21,0.4);">🎡 Spin Now</button>
+                </div>
+                <p id="spin_result_msg" style="font-size: 15px; margin-top: 15px; font-weight: 800; text-align: center;"></p>
+
+                <hr style="border: 0; border-top: 2px dashed #ccc; margin: 20px 0;">
+                <p style="margin: 0; font-size: 24px; color: var(--brand-color); font-weight: 800; display: flex; justify-content: space-between;"><span>Total:</span> <span>Tk <span id="cart-total">0</span></span></p>
+            </div>
+            
+            <form id="order-form">
+                <input type="text" id="c_name" placeholder="আপনার নাম (Your Name)" class="form-control" required>
+                <input type="tel" id="c_phone" placeholder="মোবাইল নাম্বার (Phone Number)" class="form-control" required>
+                
+                <div id="checkout-address-selection" style="display: none; margin-bottom: 15px;">
+                    <label style="font-size: 14px; font-weight: bold;">Select Address:</label>
+                    <select id="checkout-address-dropdown" class="form-control" style="margin-top: 5px;">
+                        <option value="new">-- Type New Address --</option>
+                    </select>
+                </div>
+
+                <textarea id="c_address" placeholder="সম্পূর্ণ ডেলিভারি ঠিকানা (Full Address)" class="form-control" required style="height: 80px;"></textarea>
+                
+                <div style="margin: 15px 0; background: var(--bg-light-grey); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
+                    <p style="margin: 0 0 10px 0; font-weight: 700; font-size: 15px;">Payment Method:</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <label style="font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px;"><input type="radio" name="payment" value="COD" checked> Cash on Delivery</label>
+                        <label style="font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px;"><input type="radio" name="payment" value="bKash"> bKash</label>
+                        <label style="font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px;"><input type="radio" name="payment" value="Nagad"> Nagad</label>
+                        <label style="font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px;"><input type="radio" name="payment" value="Rocket"> Rocket</label>
+                    </div>
+                </div>
+
+                <div id="payment-instruction-box" style="display: none; background: #fff8e1; padding: 15px; border-radius: 12px; margin-top: 15px; border: 2px solid #ffe082; font-size: 14px;">
+                    ১. নিচের নাম্বারে <strong id="pay-method-name"></strong> Send Money করুন。<br>
+                    ২. পার্সোনাল নাম্বার: <strong id="pay-number" style="color: #d84315; font-size: 18px;">Loading...</strong><br>
+                    <input type="text" id="c_trxid" placeholder="Transaction ID (TrxID)" style="width: 100%; padding: 12px; margin-top: 15px; border: 2px solid #d84315; border-radius: 8px; font-weight: bold; outline: none;">
+                </div>
+
+                <button type="submit" style="width: 100%; background: #2e7d32; color: white; border: none; padding: 18px; border-radius: 12px; font-size: 18px; font-weight: 800; cursor: pointer; margin-top: 20px; box-shadow: 0 5px 15px rgba(46,125,50,0.3); transition: 0.3s;">CONFIRM ORDER</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="success-modal" class="modal" style="z-index: 7000;">
+        <div class="modal-content" style="max-width: 400px; text-align: center; padding: 40px 30px; border-radius: 20px; position: relative;">
+            <span class="close-btn" onclick="closeSuccessModal()" style="position: absolute; right: 15px; top: 15px; font-size: 28px; cursor: pointer; color: #888;">&times;</span>
+            
+            <div style="font-size: 60px; color: #28a745; margin-bottom: 10px;">🎉</div>
+            <h2 style="color: #28a745; margin-top: 0;">Order Confirmed!</h2>
+            <p style="color: #555; font-size: 14px; line-height: 1.5; margin-bottom: 20px;">Thank you for your order. We will process it shortly.</p>
+            
+            <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; border: 2px dashed var(--brand-color); margin-bottom: 20px;">
+                <p style="margin: 0 0 5px 0; font-size: 12px; color: gray;">Your Tracking ID</p>
+                <h1 style="margin: 0; color: var(--brand-color); font-size: 32px; letter-spacing: 2px;" id="success-tracking-id">00000</h1>
+            </div>
+            
+            <p style="font-size: 12px; color: gray; margin-bottom: 20px;">* Please save this ID to track your order later.</p>
+            
+            <button onclick="downloadCustomerInvoicePicture()" style="width: 100%; background: #e83e8c; color: #fff; border: none; padding: 14px; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(232, 62, 140, 0.3);">🖼️ Download Invoice (PNG)</button>
+            
+            <button onclick="closeSuccessModalAndTrack()" style="width: 100%; background: none; color: #007bff; border: 1px solid #007bff; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">Track Order Now</button>
+        </div>
+    </div>
+
+    <div style="display: none;">
+        <div id="invoice-template" style="padding: 40px; font-family: Arial, sans-serif; color: #333; background: #fff; width: 100%; max-width: 800px; margin: auto; box-sizing: border-box;">
+            <div style="display: flex; justify-content: space-between; border-bottom: 3px solid #d97d00; padding-bottom: 20px; margin-bottom: 30px;">
+                <div>
+                    <h1 style="color: #d97d00; margin: 0; font-size: 36px; font-style: italic;">eBong</h1>
+                    <p style="margin: 5px 0; color: #555;">Premium Fashion Brand</p>
+                </div>
+                <div style="text-align: right;">
+                    <h2 style="margin: 0 0 5px 0;">INVOICE</h2>
+                    <p style="margin: 2px 0;"><strong>Tracking ID:</strong> <span id="pdf-tracking-id"></span></p>
+                    <p style="margin: 2px 0;"><strong>Date:</strong> <span id="pdf-date"></span></p>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 30px;">
+                <h3 style="border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 10px;">Billed To:</h3>
+                <p style="margin: 3px 0; font-weight: bold; font-size: 18px;" id="pdf-name"></p>
+                <p style="margin: 3px 0;">📞 <span id="pdf-phone"></span></p>
+                <p style="margin: 3px 0; max-width: 300px;">📍 <span id="pdf-address"></span></p>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; border: 1px solid #ddd;">
+                <thead>
+                    <tr style="background: #f4f4f4;">
+                        <th style="text-align: left; padding: 12px; border-bottom: 2px solid #ccc; width: 60%;">Product Description</th>
+                        <th style="text-align: center; padding: 12px; border-bottom: 2px solid #ccc; width: 15%;">Qty</th>
+                        <th style="text-align: right; padding: 12px; border-bottom: 2px solid #ccc; width: 25%;">Price</th>
+                    </tr>
+                </thead>
+                <tbody id="pdf-items">
+                    </tbody>
+            </table>
+            
+            <div style="text-align: right;">
+                <p id="pdf-discount" style="font-size: 14px; color: green; margin: 5px 0;"></p>
+                <p id="pdf-spin" style="font-size: 14px; color: #d97d00; font-weight: bold; margin: 5px 0;"></p>
+                <p style="font-size: 14px; margin: 5px 0;">Delivery Charge: Tk <span id="pdf-delivery"></span></p>
+                <h2 style="margin: 10px 0 5px 0; color: #111;">Total Bill: Tk <span id="pdf-total"></span></h2>
+                <p style="font-weight: bold; font-size: 16px; margin-top: 10px;">
+                    Payment Method: <span id="pdf-method"></span> <br>
+                    <span id="pdf-status" style="font-size:12px;"></span>
+                </p>
+            </div>
+            
+            <div style="text-align: center; margin-top: 50px; font-size: 12px; color: #888; border-top: 1px solid #eee; padding-top: 20px;">
+                <p>This is a system-generated invoice.</p>
+                <p>Thank you for shopping with eBong!</p>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="auth-modal" class="modal" style="z-index: 6000;">
+        <div class="modal-content" style="max-width: 400px; text-align: center; padding: 40px 30px;">
+            <span class="close-btn" id="close-auth-modal" style="position: absolute; right: 15px; top: 10px; font-size: 28px; cursor: pointer; color: #888;">&times;</span>
+            
+            <img src="logo.png" alt="Logo" onerror="this.style.display='none'" style="max-height: 50px; margin: 0 auto 15px auto; display: block;">
+            <h2 id="auth-title" style="margin-top: 0; color: var(--brand-color); font-size: 24px;">Welcome Back!</h2>
+            <p id="auth-subtitle" style="color: gray; font-size: 13px; margin-bottom: 25px;">Login to view your orders and fast checkout.</p>
+            
+            <form id="auth-form">
+                <div id="auth-name-field" style="display: none;">
+                    <input type="text" id="auth_name" class="form-control" placeholder="Full Name">
+                </div>
+                <div id="auth-phone-field" style="display: none;">
+                    <input type="tel" id="auth_phone" class="form-control" placeholder="Phone Number">
+                </div>
+
+                <input type="email" id="auth_email" class="form-control" placeholder="Email Address" required>
+                <input type="password" id="auth_password" class="form-control" placeholder="Password (Min 6 characters)" required minlength="6">
+                
+                <button type="submit" id="auth-submit-btn" style="width: 100%; background: #111; color: #fff; border: none; padding: 14px; border-radius: 8px; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.3s; margin-top: 10px;">Login</button>
+            </form>
+            
+            <div style="margin-top: 20px; font-size: 14px;">
+                <span id="auth-toggle-text">Don't have an account?</span> 
+                <a href="#" id="auth-toggle-btn" style="color: var(--brand-color); font-weight: bold; text-decoration: underline;">Create Account</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="profile-modal" class="modal" style="z-index: 6000;">
+        <div class="modal-content" style="max-width: 600px; padding: 0; overflow: hidden; background: var(--bg-light-grey);">
+            <span class="close-btn" id="close-profile-modal" style="position: absolute; right: 15px; top: 15px; font-size: 28px; cursor: pointer; color: #fff; z-index: 10;">&times;</span>
+            
+            <div style="background: linear-gradient(135deg, var(--brand-color), #ff9800); padding: 30px 20px; text-align: center; color: white;">
+                <div style="width: 80px; height: 80px; background: rgba(255,255,255,0.2); border-radius: 50%; margin: 0 auto 10px auto; display: flex; justify-content: center; align-items: center; font-size: 40px; border: 2px solid white;">👤</div>
+                <h2 id="profile-user-name" style="margin: 0; font-size: 22px;">Loading...</h2>
+                <p id="profile-user-email" style="margin: 5px 0 0 0; font-size: 13px; opacity: 0.9;">...</p>
+            </div>
+
+            <div style="display: flex; background: #fff; border-bottom: 1px solid var(--border-color); overflow-x: auto; white-space: nowrap;">
+                <button class="profile-tab-btn active" onclick="switchProfileTab('orders')" style="flex: 1; padding: 15px; background: none; border: none; font-weight: bold; font-family: inherit; cursor: pointer; border-bottom: 3px solid var(--brand-color); color: var(--brand-color);">📦 Orders</button>
+                <button class="profile-tab-btn" onclick="switchProfileTab('address')" style="flex: 1; padding: 15px; background: none; border: none; font-weight: bold; font-family: inherit; cursor: pointer; color: gray;">📍 Address</button>
+                <button class="profile-tab-btn" onclick="switchProfileTab('wishlist')" style="flex: 1; padding: 15px; background: none; border: none; font-weight: bold; font-family: inherit; cursor: pointer; color: gray;">❤️ Wishlist</button>
+            </div>
+
+            <div id="profile-tab-orders" class="profile-tab-content" style="padding: 20px; background: var(--bg-card); display: block;">
+                <div id="profile-orders-list" style="max-height: 350px; overflow-y: auto; padding-right: 5px;">
+                    <p style="text-align: center; color: gray; font-size: 14px; padding: 20px;">Loading your orders...</p>
+                </div>
+            </div>
+
+            <div id="profile-tab-address" class="profile-tab-content" style="padding: 20px; background: var(--bg-card); display: none;">
+                <form id="add-address-form" style="margin-bottom: 20px; background: var(--bg-light-grey); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <h4 style="margin: 0 0 10px 0;">➕ Add New Address</h4>
+                    <input type="text" id="new_addr_title" class="form-control" placeholder="Address Title (e.g., Home, Office)" required style="margin-bottom: 10px;">
+                    <textarea id="new_addr_details" class="form-control" placeholder="Full Details (House, Road, Area, City)" required style="height: 60px; margin-bottom: 10px;"></textarea>
+                    <button type="submit" style="background: var(--brand-color); color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%;">Save Address</button>
+                </form>
+                
+                <h4 style="margin: 0 0 10px 0; border-bottom: 2px solid var(--border-color); padding-bottom: 5px;">My Saved Addresses</h4>
+                <div id="profile-address-list" style="max-height: 200px; overflow-y: auto;">
+                    <p style="text-align: center; color: gray; font-size: 13px;">No addresses saved yet.</p>
+                </div>
+            </div>
+
+            <div id="profile-tab-wishlist" class="profile-tab-content" style="padding: 20px; background: var(--bg-card); display: none;">
+                <div id="profile-wishlist-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; max-height: 350px; overflow-y: auto;">
+                    <p style="text-align: center; color: gray; font-size: 13px; width: 100%; grid-column: 1/-1;">Your wishlist is empty.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <div id="spin-wheel-modal" class="modal" style="z-index: 2500;">
+        <div class="modal-content" style="max-width: 420px; margin: 5% auto; text-align: center;">
+            <span class="close-btn" id="close-spin-modal" style="position: absolute; right: 20px; top: 15px; font-size: 32px; cursor: pointer; color: #333; background: #eee; width: 40px; height: 40px; text-align: center; line-height: 40px; border-radius: 50%;">&times;</span>
+            <h2 style="color: #d84315; margin-top: 0; font-size: 28px;">Try Your Luck! 🍀</h2>
+            
+            <div style="position: relative; width: 280px; height: 280px; margin: 30px auto;">
+                <div id="spin-wheel-circle" style="width: 100%; height: 100%; border-radius: 50%; border: 12px solid #d84315; box-sizing: border-box; background: conic-gradient(#ffb74d 0deg 60deg, #ff9800 60deg 120deg, #f57c00 120deg 180deg, #e65100 180deg 240deg, #ff9800 240deg 300deg, #ffb74d 300deg 360deg); box-shadow: 0 10px 30px rgba(0,0,0,0.2);"></div>
+                <div style="width: 0; height: 0; border-left: 18px solid transparent; border-right: 18px solid transparent; border-top: 30px solid #222; position: absolute; top: -15px; left: 50%; transform: translateX(-50%); z-index: 10; filter: drop-shadow(0 3px 3px rgba(0,0,0,0.3));"></div>
+            </div>
+            
+            <button id="start-spin-btn" style="background: #2e7d32; color: white; border: none; padding: 15px 40px; border-radius: 30px; font-size: 20px; font-weight: 800; cursor: pointer; margin-top: 20px; box-shadow: 0 5px 15px rgba(46,125,50,0.4);">SPIN THE WHEEL</button>
+        </div>
+    </div>
+
+    <div id="image-lightbox" class="lightbox" style="display:none; position:fixed; z-index:4000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.95); justify-content:center; align-items:center; flex-direction:column;">
+        <span class="lightbox-close" onclick="closeLightbox()" style="position:absolute; top:20px; right:30px; color:white; font-size:45px; cursor:pointer; font-weight:bold; z-index:4001;">&times;</span>
+        <img id="lightbox-img" src="" alt="Fullscreen View" style="max-width:95%; max-height:85vh; object-fit:contain; border-radius:8px;">
+        <div class="lightbox-controls" style="position:absolute; width:100%; display:flex; justify-content:space-between; padding:0 20px; top:50%; transform:translateY(-50%); pointer-events: none;">
+            <button onclick="changeLightboxImage(-1)" style="pointer-events: auto; background:rgba(255,255,255,0.2); border:none; color:white; font-size:35px; padding:15px 25px; cursor:pointer; border-radius:5px;">&#10094;</button>
+            <button onclick="changeLightboxImage(1)" style="pointer-events: auto; background:rgba(255,255,255,0.2); border:none; color:white; font-size:35px; padding:15px 25px; cursor:pointer; border-radius:5px;">&#10095;</button>
+        </div>
+    </div>
+
+    <section style="margin-top: 80px; margin-bottom: 60px; width: 100%; overflow: hidden;">
+        <div class="container">
+            <div class="section-header" style="border-bottom: none; text-align: center; margin-bottom: 20px;">
+                <h2 style="display: inline-block; font-size: 28px; color: var(--text-dark); position: relative; padding-bottom: 10px;">Customer Reviews ⭐
+                    <span style="content: ''; position: absolute; width: 50%; height: 3px; background: var(--brand-color); bottom: 0; left: 25%; border-radius: 5px;"></span>
+                </h2>
+            </div>
+        </div>
+        
+        <div class="reviews-marquee-wrapper">
+            <div id="reviews-container">
+                <p style="text-align: center; width: 100%; font-size: 18px; color: gray;">Loading amazing reviews...</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="floating-action-btn" style="display: flex; flex-direction: column; gap: 10px;">
+        <button class="track-toggle-btn" id="open-tracker-modal" title="Track Your Order">🚚 Track</button>
+        <button class="review-toggle-btn" id="open-review-modal" title="Leave a Review">⭐ </button>
+        <button class="chat-toggle-btn" id="open-chat-modal" title="Live Support" style="position: relative;">
+            💬
+            <span class="chat-unread-badge" id="user-chat-badge" style="display:none;">0</span>
+        </button>
+    </div>
+
+    <div id="review-modal" class="modal">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <span class="close-btn" id="close-review-modal" style="position: absolute; right: 15px; top: 10px; font-size: 28px; cursor: pointer; color: #888;">&times;</span>
+            <h3 style="margin-top: 0; font-size: 22px; color: var(--brand-color);">Rate Your Experience</h3>
+            <p style="font-size: 13px; color: gray; margin-bottom: 20px;">Your feedback helps us improve!</p>
+            
+            <form id="review-form">
+                <div style="margin-bottom: 15px;">
+                    <select id="r_rating" class="form-control" style="font-size: 18px; text-align: center; padding: 10px;" required>
+                        <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+                        <option value="4">⭐⭐⭐⭐ Very Good</option>
+                        <option value="3">⭐⭐⭐ Good</option>
+                        <option value="2">⭐⭐ Fair</option>
+                        <option value="1">⭐ Poor</option>
+                    </select>
+                </div>
+                <input type="text" id="r_name" class="form-control" placeholder="Your Name" required>
+                <textarea id="r_text" class="form-control" placeholder="Write your review here..." rows="3" required></textarea>
+                <button type="submit" style="width: 100%; background: var(--brand-color); color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 15px; cursor: pointer; transition: 0.3s; margin-top: 10px;">Submit Review</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="custom-chat-box">
+        <div class="chat-header">
+            <span>💬 eBong Live Support</span>
+            <span id="close-chat-box" style="cursor: pointer; font-size: 20px;">&times;</span>
+        </div>
+        
+        <div id="pre-chat-form-container" class="pre-chat-form">
+            <h4>Welcome to Live Support</h4>
+            <p>Please enter your details to start chatting with our agent.</p>
+            <input type="text" id="pre-chat-name" placeholder="Your Name" required>
+            <input type="tel" id="pre-chat-phone" placeholder="Your Phone Number" required>
+            <button type="button" onclick="startCustomerChat()">Start Chat</button>
+        </div>
+
+        <div id="active-chat-interface" style="display: none; flex-direction: column; flex: 1; overflow: hidden;">
+            
+            <div class="chat-messages" id="user-messages-box">
+            </div>
+            
+            <div style="padding: 5px 10px; background: #fff; text-align: right; border-top: 1px solid #eee; flex-shrink: 0;">
+                 <button id="end-chat-user-btn" style="background: none; border: none; color: red; font-size: 11px; cursor: pointer; font-weight: bold; text-decoration: underline;">End Chat</button>
+            </div>
+            
+            <div class="chat-input" style="flex-shrink: 0;">
+                <input type="text" id="user-chat-input" placeholder="Type a message..." onkeypress="handleUserChatEnter(event)">
+                <button onclick="sendUserMessage()">Send</button>
+            </div>
+            
+        </div>
+    </div>
+
+    <footer style="background: #111; color: #fff; padding: 60px 20px 30px; margin-top: 80px; border-top: 4px solid var(--brand-color);">
+        <div class="container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 40px; text-align: left;">
+            
+            <div>
+                <h2 style="color: var(--brand-color); margin-top: 0; font-size: 36px; font-style: italic; font-weight: 800;">eBong</h2>
+                <p style="font-size: 13px; color: #bbb; line-height: 1.8;">Premium Fashion Brand. We ensure 100% authentic products with the best quality for our customers.</p>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px;">
+                    <span style="background: #222; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; border: 1px solid #333; display: inline-block;">🛡️ 100% Secure</span>
+                    <span style="background: #222; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; border: 1px solid #333; display: inline-block;">🚚 Fast Delivery</span>
+                </div>
+            </div>
+
+            <div>
+                <h3 style="color: #fff; border-bottom: 2px solid #333; padding-bottom: 10px; font-size: 18px; margin-bottom: 20px; text-transform: uppercase;">Contact Us</h3>
+                <p style="font-size: 14px; color: #ccc; margin: 12px 0; word-break: break-word;" id="footer-address">📍 <strong>Address:</strong> Ashulia, Dhaka, Bangladesh</p>
+                <p style="font-size: 14px; color: #ccc; margin: 12px 0; word-break: break-word;" id="footer-phone">📞 <strong>Phone:</strong> +8801572-921697</p>
+                <p style="font-size: 14px; color: #ccc; margin: 12px 0; word-break: break-word;" id="footer-email">📧 <strong>Email:</strong> support@ebong.com</p>
+            </div>
+
+            <div style="grid-column: span 2;">
+                <div style="display: flex; flex-wrap: wrap; gap: 40px;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <h3 style="color: #fff; border-bottom: 2px solid #333; padding-bottom: 10px; font-size: 18px; margin-bottom: 20px; text-transform: uppercase;">Message Us</h3>
+                        <div style="display: flex; gap: 15px;">
+                            <a href="#" id="wa-link" target="_blank" style="flex: 1; background: #25D366; color: white; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 14px; text-align: center; box-shadow: 0 4px 10px rgba(37,211,102,0.2); transition: 0.3s; text-decoration: none;">🟢 WhatsApp</a>
+                            <a href="#" id="fb-link" target="_blank" style="flex: 1; background: #0084FF; color: white; padding: 12px; border-radius: 8px; font-weight: bold; font-size: 14px; text-align: center; box-shadow: 0 4px 10px rgba(0,132,255,0.2); transition: 0.3s; text-decoration: none;">🔵 Messenger</a>
+                        </div>
+                    </div>
+                    
+                    <div style="flex: 1; min-width: 200px;">
+                        <h3 style="color: #fff; border-bottom: 2px solid #333; padding-bottom: 10px; font-size: 18px; margin-bottom: 20px; text-transform: uppercase;">We Accept</h3>
+                        
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+                            <span style="background: #df146e; color: white; padding: 6px 12px; border-radius: 6px; font-weight: 800; font-size: 13px; box-shadow: 0 2px 5px rgba(223,20,110,0.3); display: inline-block;">bKash</span>
+                            
+                            <span style="background: #f7941d; color: white; padding: 6px 12px; border-radius: 6px; font-weight: 800; font-size: 13px; box-shadow: 0 2px 5px rgba(247,148,29,0.3); display: inline-block;">Nagad</span>
+                            
+                            <span style="background: #8c1515; color: white; padding: 6px 12px; border-radius: 6px; font-weight: 800; font-size: 13px; font-style: italic; box-shadow: 0 2px 5px rgba(140,21,21,0.3); display: inline-block;">Rocket</span>
+                            
+                            <span style="background: #222; color: #fff; padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 12px; border: 1px solid #444; display: inline-block;">Cash on Delivery</span>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="text-align: center; margin-top: 50px; border-top: 1px solid #222; padding-top: 25px; font-size: 13px; color: #777; font-weight: 500;">
+            &copy; 2026 eBong. All rights reserved. | Developed for Premium Fashion.
+        </div>
+    </footer>
+
+    <script type="module" src="app.js"></script>
+    
+    <script>
+        function filterGlobalProducts() {
+            let input = document.getElementById('main-search-bar').value.toLowerCase();
+            let productCards = document.querySelectorAll('.product-card');
+
+            productCards.forEach(card => {
+                let name = card.querySelector('.product-name').innerText.toLowerCase();
+                let category = card.closest('.category-section').querySelector('h2').innerText.toLowerCase();
+                
+                if (name.includes(input) || category.includes(input)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            document.querySelectorAll('.category-section').forEach(section => {
+                let visibleCards = section.querySelectorAll('.product-card[style="display: block;"]');
+                if(visibleCards.length === 0 && input !== "") {
+                    section.style.display = 'none';
+                } else {
+                    section.style.display = 'block';
+                }
+            });
+        }
+
+        // Tracker Modal Logic
+        document.getElementById('open-tracker-modal').onclick = function() {
+            document.getElementById('tracker-modal').style.display = 'block';
+            document.body.classList.add('modal-open');
+        }
+        document.getElementById('close-tracker-modal').onclick = function() {
+            document.getElementById('tracker-modal').style.display = 'none';
+            document.body.classList.remove('modal-open');
+        }
+
+        // Review Modal Toggle Logic
+        document.getElementById('open-review-modal').onclick = function() {
+            document.getElementById('review-modal').style.display = 'block';
+            document.body.classList.add('modal-open');
+        }
+        document.getElementById('close-review-modal').onclick = function() {
+            document.getElementById('review-modal').style.display = 'none';
+            document.body.classList.remove('modal-open');
+        }
+
+        // Live Chat UI Toggle
+        document.getElementById('open-chat-modal').onclick = function() {
+            const chatBox = document.getElementById('custom-chat-box');
+            chatBox.style.display = chatBox.style.display === 'flex' ? 'none' : 'flex';
+        }
+        document.getElementById('close-chat-box').onclick = function() {
+            document.getElementById('custom-chat-box').style.display = 'none';
+        }
+
+        // Account Dropdown & Modal Logic
+        const userBtn = document.getElementById('user-account-btn');
+        const authModal = document.getElementById('auth-modal');
+        const profileModal = document.getElementById('profile-modal');
+        const dropdownMenu = document.getElementById('user-dropdown-menu');
+        
+        userBtn.onclick = function() {
+            if (typeof window.isCustomerLoggedIn === 'function' && window.isCustomerLoggedIn()) {
+                dropdownMenu.classList.toggle('show');
+            } else {
+                authModal.style.display = 'block';
+                document.body.classList.add('modal-open');
+            }
+        }
+        
+        // Hide dropdown if clicked outside
+        window.addEventListener('click', function(e) {
+            if (!userBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                dropdownMenu.classList.remove('show');
+            }
+        });
+
+        // Function called from dropdown menu items
+        window.openProfileTab = function(tabId) {
+            dropdownMenu.classList.remove('show'); // close dropdown
+            profileModal.style.display = 'block'; // open modal
+            document.body.classList.add('modal-open');
+            switchProfileTab(tabId); // switch to the correct tab
+        }
+
+        document.getElementById('close-auth-modal').onclick = function() {
+            authModal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+        }
+        
+        document.getElementById('close-profile-modal').onclick = function() {
+            profileModal.style.display = 'none';
+            document.body.classList.remove('modal-open');
+        }
+
+        // Profile Tabs Toggle
+        window.switchProfileTab = function(tabId) {
+            document.querySelectorAll('.profile-tab-content').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.profile-tab-btn').forEach(el => {
+                el.style.borderBottom = 'none';
+                el.style.color = 'gray';
+            });
+            
+            document.getElementById('profile-tab-' + tabId).style.display = 'block';
+            
+            // Find the correct button and make it active
+            const activeBtn = Array.from(document.querySelectorAll('.profile-tab-btn')).find(btn => btn.getAttribute('onclick').includes(tabId));
+            if(activeBtn) {
+                activeBtn.style.borderBottom = '3px solid var(--brand-color)';
+                activeBtn.style.color = 'var(--brand-color)';
+            }
+        }
+
+        // Toggle Login / Register
+        let isLoginMode = true;
+        document.getElementById('auth-toggle-btn').onclick = function(e) {
+            e.preventDefault();
+            isLoginMode = !isLoginMode;
+            
+            document.getElementById('auth-title').innerText = isLoginMode ? "Welcome Back!" : "Create Account";
+            document.getElementById('auth-subtitle').innerText = isLoginMode ? "Login to view your orders and fast checkout." : "Sign up to track orders easily.";
+            document.getElementById('auth-submit-btn').innerText = isLoginMode ? "Login" : "Sign Up";
+            document.getElementById('auth-toggle-text').innerText = isLoginMode ? "Don't have an account?" : "Already have an account?";
+            this.innerText = isLoginMode ? "Create Account" : "Login Here";
+            
+            document.getElementById('auth-name-field').style.display = isLoginMode ? 'none' : 'block';
+            document.getElementById('auth-phone-field').style.display = isLoginMode ? 'none' : 'block';
+            
+            if(!isLoginMode) {
+                document.getElementById('auth_name').required = true;
+                document.getElementById('auth_phone').required = true;
+            } else {
+                document.getElementById('auth_name').required = false;
+                document.getElementById('auth_phone').required = false;
+            }
+            
+            window.currentAuthMode = isLoginMode ? "login" : "register";
+        }
+        window.currentAuthMode = "login";
+        
+        // Notification Bell Toggle
+        document.getElementById('notification-btn').onclick = function() {
+            const panel = document.getElementById('notification-panel');
+            panel.classList.toggle('show');
+            
+            // Mark all as read when opened (handled in app.js)
+            if (panel.classList.contains('show') && typeof window.markNotificationsAsRead === 'function') {
+                window.markNotificationsAsRead();
+            }
+        }
+        
+        // Close Success Modal and Open Tracker
+        window.closeSuccessModal = function() {
+            document.getElementById('success-modal').style.display = 'none';
+            document.getElementById('tracker-modal').style.display = 'none'; 
+            document.body.classList.remove('modal-open');
+        }
+        
+        window.closeSuccessModalAndTrack = function() {
+            document.getElementById('success-modal').style.display = 'none';
+            
+            // Automatically open the Tracker modal
+            const trackingId = document.getElementById('success-tracking-id').innerText;
+            const trackerInput = document.getElementById('track-id-input');
+            if (trackerInput) trackerInput.value = trackingId;
+            
+            document.getElementById('tracker-modal').style.display = 'block';
+            // Trigger track automatically
+            if(typeof window.trackOrder === 'function') window.trackOrder();
+        }
+
+        // ⭐ NEW: PIN Input Move to Next Logic
+        window.moveToNext = function(elem, nextElementId) {
+            if (elem.value.length === 1) {
+                const nextElem = document.getElementById(nextElementId);
+                if (nextElem) nextElem.focus();
+            }
+        }
+
+        // ⭐ NEW: TAP FOR BALANCE LOGIC
+        window.toggleWalletBalance = function() {
+            // Check if user is logged in
+            if(typeof window.isCustomerLoggedIn === 'function' && window.isCustomerLoggedIn()) {
+                const balanceText = document.getElementById('wallet-balance-display');
+                
+                // Read actual balance from global variable
+                const currentBalance = window.currentWalletBalance || 0; 
+                
+                // Show balance
+                balanceText.innerText = "৳ " + currentBalance;
+                balanceText.style.color = "#28a745"; // Green color when shown
+
+                // Hide after 3 seconds
+                setTimeout(() => {
+                    balanceText.innerText = "💰 Balance";
+                    balanceText.style.color = "var(--brand-color)";
+                }, 3000);
+            } else {
+                // If not logged in, open Auth modal
+                document.getElementById('auth-modal').style.display = 'block';
+                document.body.classList.add('modal-open');
+            }
+        }
+
+        // ⭐ NEW: Open Deposit and Withdraw Modals
+        window.openDepositModal = function() {
+            document.getElementById('wallet-modal').style.display = 'none'; // Hide main wallet
+            
+            // Show dynamic numbers fetched from app.js
+            document.getElementById('dep-bkash-num').innerText = window.paymentNumbers.bkash || 'N/A';
+            document.getElementById('dep-nagad-num').innerText = window.paymentNumbers.nagad || 'N/A';
+            document.getElementById('dep-rocket-num').innerText = window.paymentNumbers.rocket || 'N/A';
+
+            document.getElementById('deposit-modal').style.display = 'block';
+        }
+
+        window.openWithdrawModal = function() {
+            document.getElementById('wallet-modal').style.display = 'none'; // Hide main wallet
+            
+            document.getElementById('with-available-bal').innerText = window.currentWalletBalance || 0;
+
+            document.getElementById('withdraw-modal').style.display = 'block';
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | eBong</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style>
+        /* ==========================================
+           ⭐ UNIVERSAL & RESPONSIVE FIX
+           ========================================== */
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; overflow-x: hidden; }
+        
+        /* 🔴 Login Screen Styles */
+        #login-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: #111; display: flex; justify-content: center; align-items: center; z-index: 10000; padding: 20px; }
+        .login-box { background: #fff; padding: 40px; border-radius: 10px; width: 100%; max-width: 350px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .login-box h2 { color: #d97d00; margin-top: 0; font-size: 28px; }
+        
+        /* Dashboard Styles */
+        #admin-dashboard { display: none; width: 100%; min-height: 100vh; }
+        
+        /* ⭐ Desktop Sidebar */
+        .sidebar { width: 250px; background: #111; color: #fff; height: 100vh; padding: 20px; box-sizing: border-box; position: fixed; overflow-y: auto; z-index: 100; }
+        .sidebar h2 { color: #d97d00; text-align: center; border-bottom: 1px solid #333; padding-bottom: 15px; margin-top: 0; }
+        .menu-item { padding: 15px; background: #222; margin-bottom: 10px; border-radius: 5px; cursor: pointer; font-weight: 600; transition: 0.3s; font-size: 14px; text-align: left; }
+        .menu-item:hover, .menu-item.active { background: #d97d00; color: #fff; }
+        
+        /* Main Content Area */
+        .main-content { flex: 1; padding: 40px; box-sizing: border-box; height: 100vh; overflow-y: auto; margin-left: 250px; background-color: #f4f7f6; width: calc(100% - 250px); }
+        .card { background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 30px; display: none; width: 100%; overflow-x: auto; }
+        .card.active { display: block; }
+        
+        /* Forms */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px;}
+        .form-control { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; font-family: 'Poppins', sans-serif;}
+        .btn-submit { background: #111; color: #fff; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; font-weight: bold; transition: 0.3s;}
+        .btn-submit:hover { background: #d97d00; }
+        
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; min-width: 600px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; vertical-align: top; }
+        th { background-color: #f8f9fa; white-space: nowrap; }
+        .action-btn { padding: 8px 10px; border: none; cursor: pointer; border-radius: 3px; color: white; font-weight: bold; margin-bottom: 5px; display: inline-block; text-align: center; }
+        .btn-green { background: #28a745; } .btn-red { background: #dc3545; } .btn-blue { background: #007bff; } .btn-orange { background: #ff9800; }
+
+        /* Toggle Switch Styles */
+        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #28a745; }
+        input:checked + .slider:before { transform: translateX(26px); }
+
+        /* ⭐ Dashboard Analytics Cards CSS */
+        .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-box { background: linear-gradient(135deg, #111, #333); color: white; padding: 25px; border-radius: 12px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .stat-box.highlight { background: linear-gradient(135deg, #d97d00, #ff9800); }
+        .stat-box h4 { margin: 0 0 10px 0; font-size: 16px; font-weight: 400; opacity: 0.9; }
+        .stat-box h2 { margin: 0; font-size: 32px; font-weight: 800; }
+
+        /* ==========================================
+           💬 LIVE CHAT STYLES FOR ADMIN
+           ========================================== */
+        .chat-layout { display: flex; height: 600px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+        .chat-users-list { width: 300px; background: #f9f9f9; border-right: 1px solid #ddd; overflow-y: auto; }
+        .chat-user-item { padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: flex-start; }
+        .chat-user-item:hover, .chat-user-item.active { background: #e6f2ff; border-left: 4px solid #007bff; }
+        .chat-user-info h4 { margin: 0; font-size: 14px; color: #333; }
+        .chat-user-info small { color: #007bff; font-weight: bold; font-size: 11px; }
+        .chat-user-info p { margin: 5px 0 0 0; font-size: 12px; color: #777; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+        .unread-badge { background: red; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
+        
+        .chat-window { flex: 1; display: flex; flex-direction: column; background: #fff; position: relative; }
+        .chat-header { padding: 15px; background: #f1f1f1; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; background: #fafafa; }
+        .msg-bubble { max-width: 70%; padding: 10px 15px; border-radius: 15px; font-size: 13px; line-height: 1.4; position: relative; }
+        .msg-customer { background: #fff; border: 1px solid #ddd; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .msg-admin { background: #007bff; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .msg-time { font-size: 10px; color: #999; margin-top: 5px; display: block; text-align: right; }
+        .msg-admin .msg-time { color: #d1e8ff; }
+        
+        .chat-input-area { padding: 15px; background: #fff; border-top: 1px solid #ddd; display: flex; gap: 10px; }
+        .chat-input-area input { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 20px; outline: none; font-family: 'Poppins', sans-serif; }
+        .chat-input-area button { background: #007bff; color: white; border: none; padding: 0 20px; border-radius: 20px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .chat-input-area button:hover { background: #0056b3; }
+        .no-chat-selected { flex: 1; display: flex; justify-content: center; align-items: center; color: #888; flex-direction: column; }
+
+        /* ==========================================
+           ⭐ CUSTOMER DETAILS MODAL STYLES
+           ========================================== */
+        .modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); overflow-y: auto; }
+        .modal-content { background-color: #f4f7f6; margin: 5% auto; border-radius: 12px; width: 90%; max-width: 800px; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.3); overflow: hidden; }
+        .modal-header { background: #111; color: #fff; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h2 { margin: 0; font-size: 20px; color: #d97d00; }
+        .close-btn { color: #fff; font-size: 28px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .close-btn:hover { color: #d97d00; }
+        .modal-body { padding: 20px; }
+
+        .customer-stats { display: flex; gap: 15px; margin-bottom: 20px; }
+        .c-stat-box { flex: 1; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ddd; text-align: center; }
+        .c-stat-box h4 { margin: 0 0 5px 0; color: gray; font-size: 12px; }
+        .c-stat-box h3 { margin: 0; color: #111; font-size: 20px; }
+
+        .order-history-list { max-height: 350px; overflow-y: auto; }
+        .history-card { background: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        .history-header { display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; padding-bottom: 10px; margin-bottom: 10px; font-size: 13px; }
+
+        /* ⭐ Address Book in Admin */
+        .admin-addr-card { background: #fff8e1; border: 1px solid #ffe082; padding: 10px; border-radius: 6px; margin-bottom: 10px; font-size: 12px; }
+        .admin-addr-card h5 { margin: 0 0 5px 0; color: #d84315; }
+
+        /* ⭐ POS Cart Box */
+        .pos-cart-box { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+        .pos-cart-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px; }
+        .pos-cart-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+        /* ==========================================
+           📱 MOBILE RESPONSIVENESS
+           ========================================== */
+        @media (max-width: 768px) {
+            #admin-dashboard { flex-direction: column; }
+            
+            /* Sidebar becomes a bottom navigation bar */
+            .sidebar { 
+                position: fixed; 
+                bottom: 0; 
+                left: 0; 
+                width: 100%; 
+                height: auto; 
+                display: flex; 
+                overflow-x: auto; 
+                padding: 10px; 
+                background: #111; 
+                z-index: 1000; 
+                white-space: nowrap;
+                box-shadow: 0 -5px 10px rgba(0,0,0,0.1);
+            }
+            .sidebar h2 { display: none; } /* Hide logo on mobile menu */
+            .menu-item { 
+                margin: 0 5px; 
+                padding: 10px 15px; 
+                font-size: 12px; 
+                text-align: center; 
+                border-radius: 20px;
+                flex-shrink: 0;
+            }
+            #logout-btn { margin-top: 0; }
+
+            /* Main Content Adjustments */
+            .main-content { 
+                margin-left: 0; 
+                width: 100%; 
+                padding: 15px; 
+                padding-bottom: 80px; /* Space for bottom nav */
+                height: auto;
+            }
+
+            .card { padding: 15px; }
+            .card h3 { font-size: 18px; margin-top: 0; }
+
+            /* Table wrapper for mobile scrolling */
+            .table-wrapper { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            table { font-size: 12px; }
+            
+            /* Two column grid adjustment for Spin form */
+            #spinSettingsForm > div { grid-template-columns: 1fr !important; }
+
+            /* Chat Mobile Fix */
+            .chat-layout { flex-direction: column; height: 80vh; }
+            .chat-users-list { width: 100%; height: 200px; border-right: none; border-bottom: 1px solid #ddd; }
+
+            .customer-stats { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="login-box">
+            <h2>eBong Admin</h2>
+            <p style="color: gray; font-size: 14px; margin-bottom: 25px;">Please login to manage your store</p>
+            <form id="adminLoginForm">
+                <input type="email" id="admin_email" class="form-control" placeholder="Admin Email" required style="margin-bottom: 15px;">
+                <input type="password" id="admin_password" class="form-control" placeholder="Password" required style="margin-bottom: 20px;">
+                <button type="submit" class="btn-submit" id="login-btn">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="admin-dashboard">
+        <div class="sidebar">
+            <h2>eBong Admin</h2>
+            <div class="menu-item active" onclick="switchTab('overview')">📊 Dashboard</div>
+            <div class="menu-item" onclick="switchTab('manualOrderEntry')">📝 Create Order (POS)</div>
+            <div class="menu-item" onclick="switchTab('manageCustomers')">👥 Customers</div>
+            <div class="menu-item" onclick="switchTab('liveChatSettings')" style="position: relative;">
+                💬 Live Chat <span id="admin-chat-badge" style="display:none; position: absolute; top: 5px; right: 5px; background: red; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px;">0</span>
+            </div>
+            <div class="menu-item" onclick="switchTab('manageOrders')">🛒 Orders</div>
+            <div class="menu-item" onclick="switchTab('manageProducts')">📋 Products</div>
+            <div class="menu-item" onclick="switchTab('addProduct')">📦 Add Product</div>
+            <div class="menu-item" onclick="switchTab('promoSettings')">🎟️ Delivery</div>
+            <div class="menu-item" onclick="switchTab('spinSettings')">🎡 Spin</div>
+            <div class="menu-item" onclick="switchTab('walletSettings')">💰 Wallet Settings</div>
+            <div class="menu-item" onclick="switchTab('siteSettings')">⚙️ Site Settings</div>
+            <div class="menu-item" onclick="switchTab('paymentSettings')">💳 Payment</div> 
+            <div class="menu-item" onclick="switchTab('activityLog')">📜 Activity Log</div> 
+            <div class="menu-item" onclick="switchTab('manageReviews')">⭐ Reviews</div>
+            <div class="menu-item" id="logout-btn" style="background: #dc3545; text-align: center; margin-top: 20px;">🚪 Logout</div>
+        </div>
+
+        <div class="main-content">
+            
+            <div id="overview" class="card active">
+                <h3>Store Overview & Analytics</h3>
+                <div class="analytics-grid">
+                    <div class="stat-box highlight">
+                        <h4>Total Revenue</h4>
+                        <h2 id="stat-revenue">Tk 0</h2>
+                        <small style="color: #fff; opacity: 0.8; font-size: 11px;">(Delivered Only, Excludes Delivery Charge)</small>
+                    </div>
+                    <div class="stat-box">
+                        <h4>Total Orders</h4>
+                        <h2 id="stat-total-orders">0</h2>
+                    </div>
+                    <div class="stat-box">
+                        <h4>Pending Orders</h4>
+                        <h2 id="stat-pending">0</h2>
+                    </div>
+                    <div class="stat-box">
+                        <h4>Total Products</h4>
+                        <h2 id="stat-products">0</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div id="manualOrderEntry" class="card">
+                <div style="border-bottom: 2px solid var(--brand-color); padding-bottom: 10px; margin-bottom: 20px;">
+                    <h3 style="margin: 0; color: var(--brand-color);">📝 Create Manual Order (Mini POS)</h3>
+                    <p style="margin: 5px 0 0 0; font-size: 12px; color: gray;">Create invoices directly for WhatsApp or Facebook customers.</p>
+                </div>
+                
+                <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+                    
+                    <div style="flex: 1; min-width: 300px;">
+                        <h4 style="margin-top: 0;">Customer Details</h4>
+                        <div class="form-group"><input type="text" id="pos_c_name" class="form-control" placeholder="Customer Name" required></div>
+                        <div class="form-group"><input type="tel" id="pos_c_phone" class="form-control" placeholder="Phone Number (Important for Tracking)" required></div>
+                        <div class="form-group"><textarea id="pos_c_address" class="form-control" placeholder="Full Delivery Address" required style="height: 60px;"></textarea></div>
+                        
+                        <h4 style="margin-top: 20px;">Add Products</h4>
+                        <div class="form-group">
+                            <select id="pos_product_select" class="form-control" onchange="updatePosDropdowns()">
+                                <option value="">-- Select Product --</option>
+                            </select>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                            <select id="pos_product_size" class="form-control" style="flex: 1;">
+                                <option value="">-- Select Size --</option>
+                            </select>
+                            <select id="pos_product_color" class="form-control" style="flex: 1;">
+                                <option value="">-- Select Color --</option>
+                            </select>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                            <input type="number" id="pos_product_qty" class="form-control" placeholder="Qty" value="1" min="1" style="flex: 1;">
+                            <button class="btn-submit" onclick="addPosItem()" style="flex: 1; padding: 12px 10px;">🛒 Add to List</button>
+                        </div>
+
+                        <h4 style="margin-top: 20px;">Order Details</h4>
+                        <div style="display: flex; gap: 10px;">
+                            <div class="form-group" style="flex: 1;"><label>Delivery Charge</label><input type="number" id="pos_delivery_charge" class="form-control" value="60"></div>
+                            <div class="form-group" style="flex: 1;"><label>Discount</label><input type="number" id="pos_discount" class="form-control" value="0"></div>
+                        </div>
+
+                        <div class="form-group" style="background: #e8f5e9; padding: 15px; border-radius: 8px; border: 1px solid #c8e6c9; margin-bottom: 15px;">
+                            <label style="color: #2e7d32;">Payment Received Status</label>
+                            <select id="pos_payment_status" class="form-control" onchange="togglePosAdvanceAmount()" style="margin-bottom: 10px;">
+                                <option value="Due">Due (Full COD)</option>
+                                <option value="Delivery Paid">Delivery Charge Paid</option>
+                                <option value="Partial Paid">Partial Amount Paid</option>
+                                <option value="Full Paid">Full Paid</option>
+                            </select>
+                            
+                            <div id="pos_advance_box" style="display: none;">
+                                <label style="font-size: 12px; color: #555;">Advance Received Amount (Tk)</label>
+                                <input type="number" id="pos_advance_amount" class="form-control" value="0" min="0" oninput="renderPosCart()">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Payment Method (Medium)</label>
+                            <select id="pos_payment_method" class="form-control">
+                                <option value="COD">Cash on Delivery (COD)</option>
+                                <option value="bKash">bKash</option>
+                                <option value="Nagad">Nagad</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Admin Note (Optional)</label>
+                            <input type="text" id="pos_admin_note" class="form-control" placeholder="e.g., WhatsApp Order">
+                        </div>
+                    </div>
+
+                    <div style="flex: 1; min-width: 300px; background: #f9f9f9; padding: 20px; border-radius: 12px; border: 1px solid #eee;">
+                        <h4 style="margin-top: 0;">Current Cart</h4>
+                        <div id="pos-cart-container" class="pos-cart-box">
+                            <p style="text-align: center; color: gray; font-size: 13px; margin: 0;">Cart is empty.</p>
+                        </div>
+                        
+                        <div style="border-top: 2px dashed #ccc; padding-top: 15px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span>Subtotal:</span> <strong id="pos_subtotal">Tk 0</strong></div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;"><span>Delivery:</span> <strong id="pos_delivery_display">Tk 60</strong></div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px; color: green;"><span>Discount:</span> <strong id="pos_discount_display">-Tk 0</strong></div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px; color: blue;"><span>Advance Paid:</span> <strong id="pos_advance_display">-Tk 0</strong></div>
+                            
+                            <hr style="border-top: 1px solid #ccc; margin: 10px 0;">
+                            <div style="display: flex; justify-content: space-between; font-size: 20px; color: var(--brand-color);"><span>Grand Total:</span> <strong id="pos_grand_total">Tk 0</strong></div>
+                            <div style="display: flex; justify-content: space-between; font-size: 22px; color: #dc3545; margin-top: 5px; font-weight: bold; background: #ffebeb; padding: 5px; border-radius: 5px;"><span>Cash to Collect:</span> <strong id="pos_due_total">Tk 0</strong></div>
+                        </div>
+
+                        <button class="btn-submit" onclick="submitPosOrder()" style="margin-top: 20px; padding: 15px; font-size: 18px; background: #28a745;">✅ Generate Order & Invoice</button>
+                    </div>
+
+                </div>
+
+                <div id="pos-success-area" style="display: none; margin-top: 30px; background: #e6f2ff; padding: 20px; border-radius: 12px; border: 1px solid #b3d4ff;">
+                    <h3 style="color: #0056b3; margin-top: 0;">🎉 Order Generated Successfully!</h3>
+                    
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 250px;">
+                            <label style="font-weight: bold; font-size: 13px;">WhatsApp Ready Message:</label>
+                            <textarea id="pos_wa_message" class="form-control" style="height: 120px; font-size: 13px; background: #fff;" readonly></textarea>
+                            <button class="action-btn btn-blue" onclick="copyPosMessage()" style="width: 100%;">📋 Copy Message</button>
+                        </div>
+                        <div style="flex: 1; min-width: 250px; text-align: center; display: flex; flex-direction: column; justify-content: center; gap: 10px;">
+                            <p style="font-size: 13px; color: gray; margin:0;">Tracking ID: <strong id="pos_tracking_id_display" style="color: #d97d00; font-size: 20px;"></strong></p>
+                            
+                            <button class="btn-submit" id="pos_print_btn" style="background: #111;">🖨️ Print / Download PDF Invoice</button>
+                            
+                            <button class="btn-submit" id="pos_pic_btn" style="background: #e83e8c;">🖼️ Download as Picture (PNG)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="manageCustomers" class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
+                    <h3 style="margin: 0;">Registered Customers</h3>
+                </div>
+                <input type="text" id="customerSearchInput" onkeyup="searchCustomers()" placeholder="🔍 Search by Name, Phone or Email..." class="form-control" style="margin-bottom: 15px;">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Contact Info</th>
+                                <th>Joined Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customers-table-body">
+                            <tr><td colspan="4" style="text-align: center;">Loading customers...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="liveChatSettings" class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">
+                    <h3 style="color:#007bff; margin: 0;">💬 Customer Live Support</h3>
+                    <button class="action-btn btn-red" onclick="clearAllChats()" style="font-size: 12px; margin: 0;">🗑️ Clear All Chats</button>
+                </div>
+                <div class="chat-layout">
+                    <div class="chat-users-list" id="admin-chat-list">
+                        <div style="padding: 20px; text-align: center; color: gray; font-size: 13px;">Loading active chats...</div>
+                    </div>
+                    <div class="chat-window" id="admin-chat-window">
+                        <div class="no-chat-selected">
+                            <span style="font-size: 40px; margin-bottom: 10px;">💬</span>
+                            <p>Select a customer from the list to start chatting.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="manageOrders" class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 15px;">
+                    <h3 style="margin: 0;">Customer Orders</h3>
+                    <button class="action-btn btn-green" onclick="exportOrdersToExcel()" style="padding: 10px 20px; font-size: 14px;">📥 Export to Excel</button>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Customer Info</th><th>Order Details</th><th>Payment & Status</th><th>Action</th></tr></thead>
+                        <tbody id="orders-table-body"><tr><td colspan="4">Loading...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="manageProducts" class="card">
+                <h3>Manage Inventory & Edit Products</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Product Name</th><th>Category</th><th>Stock & Sizes</th><th>Price / Dis.</th><th>Action</th></tr></thead>
+                        <tbody id="products-table-body"><tr><td colspan="5">Loading...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="addProduct" class="card">
+                <h3>Add Detailed Product</h3>
+                <form id="addProductForm">
+                    <div class="form-group"><label>Product Name</label><input type="text" id="p_name" class="form-control" required></div>
+                    
+                    <div class="form-group">
+                        <label>Product Code / SKU</label>
+                        <input type="text" id="p_code" class="form-control" placeholder="e.g., S-101" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="p_category" class="form-control" required>
+                            <option value="women clothes">Women clothes</option> 
+                            <option value="Panjabi">Panjabi</option>
+                            <option value="T-Shirt">T-Shirt</option>
+                            <option value="Denim & Pants">Denim & Pants</option>
+                            <option value="Accessories">Accessories</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group"><label>Regular Price (Tk)</label><input type="number" id="p_price" class="form-control" required></div>
+                    <div class="form-group"><label>Discount Price (Tk) [Leave 0 if no discount]</label><input type="number" id="p_discount" class="form-control" value="0"></div>
+                    
+                    <div class="form-group" style="background: #fff8e1; padding: 15px; border-radius: 8px; border: 1px solid #ffe082;">
+                        <label style="color: #d84315; margin-bottom: 10px;">📏 Available Sizes & Stock (যে সাইজ নেই সেখানে 0 রাখুন)</label>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 10px;">
+                            <div><small style="font-weight:bold;">M (Pcs)</small><input type="number" id="s_m" class="form-control" value="0" min="0" style="padding: 8px;"></div>
+                            <div><small style="font-weight:bold;">L (Pcs)</small><input type="number" id="s_l" class="form-control" value="0" min="0" style="padding: 8px;"></div>
+                            <div><small style="font-weight:bold;">XL (Pcs)</small><input type="number" id="s_xl" class="form-control" value="0" min="0" style="padding: 8px;"></div>
+                            <div><small style="font-weight:bold;">XXL (Pcs)</small><input type="number" id="s_xxl" class="form-control" value="0" min="0" style="padding: 8px;"></div>
+                            <div><small style="font-weight:bold;">Free Size</small><input type="number" id="s_free" class="form-control" value="0" min="0" style="padding: 8px;"></div>
+                        </div>
+                        <p style="font-size: 11px; color: gray; margin-top: 5px;">* সবগুলো সাইজের পিস যোগ করে অটোমেটিক মোট স্টক তৈরি হবে।</p>
+                    </div>
+
+                    <input type="hidden" id="p_stock" value="0">
+                    <input type="hidden" id="p_colors" value=""> 
+                    <div class="form-group"><label>Short Description</label><textarea id="p_desc" class="form-control" style="height: 60px;"></textarea></div>
+                    
+                    <div class="form-group" style="background: #f0f8ff; padding: 15px; border-radius: 8px; border: 1px solid #b3d4ff;">
+                        <label style="color: #0056b3; margin-bottom: 10px;">🎨 Product Images & Colors (ছবির লিংকের পাশে রং লিখুন)</label>
+                        
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <input type="url" id="img_url_1" class="form-control" placeholder="Main Image URL (Required)" required style="margin: 0; flex: 2;">
+                            <input type="text" id="img_color_1" class="form-control" placeholder="Color Name (e.g., Red)" required style="margin: 0; flex: 1;">
+                        </div>
+
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <input type="url" id="img_url_2" class="form-control" placeholder="Image URL 2 (Optional)" style="margin: 0; flex: 2;">
+                            <input type="text" id="img_color_2" class="form-control" placeholder="Color Name" style="margin: 0; flex: 1;">
+                        </div>
+
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <input type="url" id="img_url_3" class="form-control" placeholder="Image URL 3 (Optional)" style="margin: 0; flex: 2;">
+                            <input type="text" id="img_color_3" class="form-control" placeholder="Color Name" style="margin: 0; flex: 1;">
+                        </div>
+
+                        <div style="display: flex; gap: 10px;">
+                            <input type="url" id="img_url_4" class="form-control" placeholder="Image URL 4 (Optional)" style="margin: 0; flex: 2;">
+                            <input type="text" id="img_color_4" class="form-control" placeholder="Color Name" style="margin: 0; flex: 1;">
+                        </div>
+                        <p style="font-size: 11px; color: gray; margin-top: 8px; margin-bottom: 0;">* কাস্টমার কালার সিলেক্ট করলে অটোমেটিক এই ছবিটি দেখাবে।</p>
+                    </div>
+                    
+                    <button type="submit" class="btn-submit" id="product-submit-btn">Upload Product</button>
+                </form>
+            </div>
+
+            <div id="spinSettings" class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                    <h3 style="color:#d97d00; margin: 0;">🎡 Spin to Win Settings</h3>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-weight: bold; font-size: 14px;">Enable Spin Feature:</span>
+                        <label class="switch">
+                            <input type="checkbox" id="spin_status_toggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <p style="color: gray; font-size: 13px; margin-bottom: 25px;">কাস্টমারদের কার্টে থাকা মোট টাকার পরিমাণের ওপর ভিত্তি করে স্পিনে কী প্রাইজ উঠবে তা এখানে সেট করুন।</p>
+                
+                <form id="spinSettingsForm">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <div class="form-group" style="margin: 0;"><label>Below 950 Tk Prize</label><input type="text" id="spin_tier_1" class="form-control" value="5% Discount" required></div>
+                        <div class="form-group" style="margin: 0;"><label>1200 - 2500 Tk Prize</label><input type="text" id="spin_tier_2" class="form-control" value="Free Delivery" required></div>
+                        <div class="form-group" style="margin: 0;"><label>2601 - 4500 Tk Prize</label><input type="text" id="spin_tier_3" class="form-control" value="10% Discount" required></div>
+                        <div class="form-group" style="margin: 0;"><label>4501 - 5000 Tk Prize</label><input type="text" id="spin_tier_4" class="form-control" value="12% Discount" required></div>
+                        <div class="form-group" style="margin: 0;"><label>5100 - 10000 Tk Prize</label><input type="text" id="spin_tier_5" class="form-control" value="Free Sunglass" required></div>
+                        <div class="form-group" style="margin: 0;"><label>Above 10000 Tk Prize</label><input type="text" id="spin_tier_6" class="form-control" value="17% Discount" required></div>
+                    </div>
+                    <button type="submit" class="btn-submit" id="spin-submit-btn">Save Spin Settings</button>
+                </form>
+            </div>
+
+            <div id="walletSettings" class="card">
+                <div style="border-bottom: 2px solid var(--brand-color); padding-bottom: 10px; margin-bottom: 20px;">
+                    <h3 style="margin: 0; color: var(--brand-color);">💰 eBong Wallet Management</h3>
+                    <p style="margin: 5px 0 0 0; font-size: 13px; color: gray;">কাস্টমারদের ওয়ালেট ব্যালেন্স চেক, আপডেট এবং উইথড্র রিকোয়েস্ট ম্যানেজ করুন।</p>
+                </div>
+
+                <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+                    
+                    <div style="flex: 1; min-width: 300px; background: #fff8e1; padding: 20px; border-radius: 12px; border: 1px solid #ffe082;">
+                        <h4 style="margin-top: 0; color: #d84315;">⚙️ Manual Balance Update</h4>
+                        <p style="font-size: 12px; color: #555; margin-bottom: 15px;">যেকোনো ইউজারের ইমেইল বা ফোন নাম্বার দিয়ে ব্যালেন্স যোগ বা মাইনাস করুন।</p>
+                        
+                        <div class="form-group">
+                            <label>Search Customer (Email or Phone)</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="wallet_search_user" class="form-control" placeholder="Enter Email or Phone..." style="margin: 0;">
+                                <button class="action-btn btn-blue" onclick="searchUserForWallet()" style="margin: 0;">Search</button>
+                            </div>
+                        </div>
+
+                        <div id="wallet_user_details" style="display: none; background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px dashed #ccc;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                <div>
+                                    <p style="margin: 0 0 5px 0;"><strong>Name:</strong> <span id="w_u_name"></span></p>
+                                    <p style="margin: 0 0 5px 0;"><strong>Email:</strong> <span id="w_u_email"></span></p>
+                                    <p style="margin: 0 0 10px 0; font-size: 16px;"><strong>Balance:</strong> <span id="w_u_balance" style="color: green; font-weight: bold;">Tk 0</span></p>
+                                </div>
+                                <button class="action-btn" style="background: #111; font-size: 10px;" onclick="resetCustomerPIN()">🔑 Reset PIN</button>
+                            </div>
+                            
+                            <input type="hidden" id="w_u_uid">
+                            
+                            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                                <input type="number" id="wallet_amount_input" class="form-control" placeholder="Amount (Tk)" style="margin: 0; flex: 2;">
+                                <button class="action-btn btn-green" onclick="updateUserWallet('add')" style="flex: 1; padding: 10px;">+ Add</button>
+                                <button class="action-btn btn-red" onclick="updateUserWallet('deduct')" style="flex: 1; padding: 10px;">- Deduct</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="flex: 1; min-width: 300px;">
+                        <h4 style="margin-top: 0;">📥 Pending Deposit/Withdraw Requests</h4>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Customer Info</th>
+                                        <th>Request Details</th>
+                                        <th>Amount</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="wallet-requests-table">
+                                    <tr><td colspan="4" style="text-align: center; color: gray;">Loading requests...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="promoSettings" class="card">
+                <h3 style="color:#d97d00; border-bottom:1px solid #eee; padding-bottom:10px;">🚚 Delivery Charges</h3>
+                <form id="deliverySettingsForm" style="margin-bottom: 30px;">
+                    <div class="form-group"><label>Inside Rangpur (Tk)</label><input type="number" id="d_inside" class="form-control" required></div>
+                    <div class="form-group"><label>Outside Rangpur (Tk)</label><input type="number" id="d_outside" class="form-control" required></div>
+                    
+                    <div class="form-group">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; flex-wrap: wrap; gap: 5px;">
+                            <label style="margin:0;">Free Delivery Threshold (Tk) [0 for none]</label>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 12px; font-weight:bold; color:var(--brand-color);">Enable Auto Free Delivery:</span>
+                                <label class="switch" style="width: 40px; height: 20px;">
+                                    <input type="checkbox" id="d_auto_free_toggle">
+                                    <span class="slider" style="border-radius: 20px;"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <input type="number" id="d_threshold" class="form-control" value="0" required>
+                    </div>
+
+                    <button type="submit" class="btn-submit" id="delivery-submit-btn">Save Delivery Charges</button>
+                </form>
+
+                <h3 style="color:#d97d00; border-bottom:1px solid #eee; padding-bottom:10px;">🎟️ Create Promo Code</h3>
+                <form id="promoForm">
+                    <div class="form-group"><label>Promo Code Name (e.g., EID20)</label><input type="text" id="pr_code" class="form-control" required style="text-transform: uppercase;"></div>
+                    <div class="form-group"><label>Discount Amount (Tk)</label><input type="number" id="pr_amount" class="form-control" required></div>
+                    <button type="submit" class="btn-submit btn-green" id="promo-submit-btn">Add Promo Code</button>
+                </form>
+                
+                <div class="table-wrapper">
+                    <table style="margin-top: 20px;">
+                        <thead><tr><th>Promo Code</th><th>Discount (Tk)</th><th>Action</th></tr></thead>
+                        <tbody id="promo-table-body"><tr><td colspan="3">Loading...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="siteSettings" class="card">
+                <h3>Update Website Look & Contact Info</h3>
+                <form id="settingsForm">
+                    
+                    <div class="form-group" style="background: #e6f2ff; padding: 15px; border-radius: 8px; border: 1px solid #b3d4ff; margin-bottom: 20px;">
+                        <label style="color: #0056b3;">🌐 Website Domain Name</label>
+                        <p style="font-size: 11px; color: gray; margin-top: 0;">* এই নামটি অটোমেটিক ইনভয়েস পিডিএফ এবং হোয়াটসঅ্যাপ মেসেজে যুক্ত হবে।</p>
+                        <input type="text" id="s_domain_name" class="form-control" placeholder="e.g., ebong.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Scrolling Headline Text</label>
+                        <input type="text" id="s_headline" class="form-control" placeholder="e.g., Mega Sale is live now!">
+                    </div>
+                    
+                    <h4 style="margin-top: 30px; border-bottom: 1px solid #eee; padding-bottom: 5px; color: #0056b3;">🖼️ Auto-Sliding Banners</h4>
+                    <p style="font-size: 12px; color: gray; margin-bottom: 15px;">মেইন পেইজে অটোমেটিক ব্যানার স্লাইড করার জন্য ছবির লিংক দিন এবং সময় নির্ধারণ করুন।</p>
+                    
+                    <div style="background: #f0f8ff; padding: 15px; border-radius: 8px; border: 1px solid #b3d4ff; margin-bottom: 20px;">
+                        <div class="form-group">
+                            <label>Banner Image 1 URL (Required)</label>
+                            <input type="url" id="s_banner_1" class="form-control" placeholder="Primary Banner URL">
+                        </div>
+                        <div class="form-group">
+                            <label>Banner Image 2 URL (Optional)</label>
+                            <input type="url" id="s_banner_2" class="form-control" placeholder="Banner 2 URL">
+                        </div>
+                        <div class="form-group">
+                            <label>Banner Image 3 URL (Optional)</label>
+                            <input type="url" id="s_banner_3" class="form-control" placeholder="Banner 3 URL">
+                        </div>
+                        <div class="form-group">
+                            <label>Banner Image 4 URL (Optional)</label>
+                            <input type="url" id="s_banner_4" class="form-control" placeholder="Banner 4 URL">
+                        </div>
+                        <div class="form-group">
+                            <label>Banner Image 5 URL (Optional)</label>
+                            <input type="url" id="s_banner_5" class="form-control" placeholder="Banner 5 URL">
+                        </div>
+                        
+                        <div class="form-group" style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 15px;">
+                            <label>Slide Duration (in seconds)</label>
+                            <input type="number" id="s_banner_time" class="form-control" placeholder="e.g., 3" value="3" min="1" max="10">
+                            <small style="color: gray;">কত সেকেন্ড পর পর ব্যানার চেঞ্জ হবে তা লিখুন (যেমন: 3 বা 4)</small>
+                        </div>
+                    </div>
+                    
+                    <h4 style="margin-top: 30px; border-bottom: 1px solid #eee; padding-bottom: 5px;">📞 Contact & Social Info</h4>
+                    
+                    <div class="form-group">
+                        <label>Office Address</label>
+                        <input type="text" id="s_address" class="form-control" placeholder="e.g., Ashulia, Dhaka, Bangladesh">
+                    </div>
+                    <div class="form-group">
+                        <label>Support Phone Number</label>
+                        <input type="text" id="s_phone" class="form-control" placeholder="e.g., +8801234567890">
+                    </div>
+                    <div class="form-group">
+                        <label>Support Email</label>
+                        <input type="text" id="s_email" class="form-control" placeholder="e.g., support@ebong.com">
+                    </div>
+                    <div class="form-group">
+                        <label>WhatsApp Number (Country Code সহ, কিন্তু + ছাড়া)</label>
+                        <input type="text" id="s_whatsapp" class="form-control" placeholder="e.g., 8801234567890">
+                    </div>
+                    <div class="form-group">
+                        <label>Facebook Messenger Link</label>
+                        <input type="text" id="s_messenger" class="form-control" placeholder="e.g., https://m.me/yourpage">
+                    </div>
+
+                    <div class="form-group" style="background: #e8f5e9; padding: 15px; border-radius: 8px; border: 1px solid #c8e6c9; margin-top: 20px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <label style="margin:0; color: #2e7d32;">🔥 Fake Sales Notification (Popup)</label>
+                                <small style="color: #666; font-weight: normal;">ওয়েবসাইটে ফেক সেলস নোটিফিকেশন চালু বা বন্ধ রাখুন</small>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="s_sales_popup_toggle" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit" id="settings-submit-btn" style="margin-top: 15px;">Save Settings</button>
+                </form>
+            </div>
+
+            <div id="paymentSettings" class="card">
+                <h3>Payment Gateway Numbers</h3>
+                <p style="color: gray; font-size: 14px; margin-bottom: 20px;">আপনার বিকাশ, নগদ ও রকেট নাম্বার এখানে সেভ করুন। কাস্টমাররা পেমেন্ট করার সময় এই নাম্বারগুলো দেখতে পাবে。</p>
+                <form id="paymentSettingsForm">
+                    <div class="form-group">
+                        <label>bKash Personal Number</label>
+                        <input type="text" id="s_bkash" class="form-control" placeholder="e.g., 017XXXXXXX">
+                    </div>
+                    <div class="form-group">
+                        <label>Nagad Personal Number</label>
+                        <input type="text" id="s_nagad" class="form-control" placeholder="e.g., 016XXXXXXX">
+                    </div>
+                    <div class="form-group">
+                        <label>Rocket Personal Number</label>
+                        <input type="text" id="s_rocket" class="form-control" placeholder="e.g., 019XXXXXXX">
+                    </div>
+                    <button type="submit" class="btn-submit" id="payment-submit-btn">Save Payment Numbers</button>
+                </form>
+            </div>
+
+            <div id="activityLog" class="card">
+                <h3>📋 Admin Activity Log</h3>
+                <p style="font-size: 13px; color: #666;">এখানে সকল ডিলিট করা অর্ডার দেখা যাবে। আপনি চাইলে এখান থেকে Permanent Delete করতে পারেন。</p>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>Admin Name</th>
+                                <th>Action</th>
+                                <th>Order ID</th>
+                                <th>Note</th>
+                                <th>Final Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activity-log-body">
+                            <tr><td colspan="6">Loading logs...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="manageReviews" class="card">
+                <h3>⭐ Manage Customer Reviews</h3>
+                <p style="font-size: 13px; color: #666;">কাস্টমারদের দেওয়া রিভিউগুলো এখান থেকে Approve বা Delete করুন。</p>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Customer Info</th>
+                                <th>Review & Rating</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reviews-table-body">
+                            <tr><td colspan="4">Loading reviews...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="edit-product-modal" class="modal" style="z-index: 10000;">
+        <div class="modal-content" style="max-width: 700px; padding: 0;">
+            <div class="modal-header">
+                <h2 id="edit-modal-title">Edit Product</h2>
+                <span class="close-btn" onclick="document.getElementById('edit-product-modal').style.display='none'">&times;</span>
+            </div>
+            
+            <div class="modal-body" style="background: #fff; padding: 25px;">
+                <form id="editProductForm">
+                    <input type="hidden" id="edit_p_id">
+                    
+                    <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                        <div class="form-group" style="flex: 2;">
+                            <label>Product Name</label>
+                            <input type="text" id="edit_p_name" class="form-control" required>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Product Code</label>
+                            <input type="text" id="edit_p_code" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Regular Price</label>
+                            <input type="number" id="edit_p_price" class="form-control" required>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Discount Price</label>
+                            <input type="number" id="edit_p_discount" class="form-control">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Category</label>
+                            <select id="edit_p_category" class="form-control" required>
+                                <option value="women clothes">Women clothes</option> 
+                                <option value="Panjabi">Panjabi</option>
+                                <option value="T-Shirt">T-Shirt</option>
+                                <option value="Denim & Pants">Denim & Pants</option>
+                                <option value="Accessories">Accessories</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="background: #fff8e1; padding: 15px; border-radius: 8px; border: 1px solid #ffe082;">
+                        <label style="color: #d84315; margin-bottom: 10px;">📏 Edit Sizes & Stock</label>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 10px;">
+                            <div><small style="font-weight:bold;">M</small><input type="number" id="edit_s_m" class="form-control" value="0" min="0" style="padding: 8px;"></div>
+                            <div><small style="font-weight:bold;">L</small><input type="number" id="edit_s_l" class="form-control" value="0" min="0" style="padding: 8px;"></div>
+                            <div><small style="font-weight:bold;">XL</small><input type="number" id="edit_s_xl" class="form-control" value="0" min="0" style="padding: 8px;"></div>
+                            <div><small style="font-weight:bold;">XXL</small><input type="number" id="edit_s_xxl" class="form-control" value="0" min="0" style="padding: 8px;"></div>
+                            <div><small style="font-weight:bold;">Free Size</small><input type="number" id="edit_s_free" class="form-control" value="0" min="0" style="padding: 8px;"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="background: #f0f8ff; padding: 15px; border-radius: 8px; border: 1px solid #b3d4ff;">
+                        <label style="color: #0056b3; margin-bottom: 10px;">🎨 Edit Images & Colors</label>
+                        <p style="font-size: 11px; color: gray; margin-top: 0;">* ছবি ডিলিট করতে চাইলে জাস্ট ছবির লিংকটা মুছে দিন।</p>
+                        
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <input type="url" id="edit_img_url_1" class="form-control" placeholder="Main Image URL" style="margin: 0; flex: 2;">
+                            <input type="text" id="edit_img_color_1" class="form-control" placeholder="Color Name" style="margin: 0; flex: 1;">
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <input type="url" id="edit_img_url_2" class="form-control" placeholder="Image URL 2" style="margin: 0; flex: 2;">
+                            <input type="text" id="edit_img_color_2" class="form-control" placeholder="Color Name" style="margin: 0; flex: 1;">
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <input type="url" id="edit_img_url_3" class="form-control" placeholder="Image URL 3" style="margin: 0; flex: 2;">
+                            <input type="text" id="edit_img_color_3" class="form-control" placeholder="Color Name" style="margin: 0; flex: 1;">
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="url" id="edit_img_url_4" class="form-control" placeholder="Image URL 4" style="margin: 0; flex: 2;">
+                            <input type="text" id="edit_img_color_4" class="form-control" placeholder="Color Name" style="margin: 0; flex: 1;">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-submit btn-green" id="update-product-btn">💾 Update Product Details</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="crm-modal" class="modal">
+        <div class="modal-content" style="max-width: 700px; padding: 0;">
+            <div class="modal-header">
+                <h2 id="crm-customer-name">Customer Details</h2>
+                <span class="close-btn" onclick="document.getElementById('crm-modal').style.display='none'">&times;</span>
+            </div>
+            
+            <div class="modal-body">
+                <div class="customer-stats">
+                    <div class="c-stat-box">
+                        <h4>Total Orders</h4>
+                        <h3 id="crm-total-orders">0</h3>
+                    </div>
+                    <div class="c-stat-box">
+                        <h4>Total Spent</h4>
+                        <h3 id="crm-total-spent" style="color: #28a745;">Tk 0</h3>
+                    </div>
+                    <div class="c-stat-box">
+                        <h4>Joined</h4>
+                        <h3 id="crm-joined-date" style="font-size: 14px; margin-top: 5px;">N/A</h3>
+                    </div>
+                </div>
+
+                <div style="background: #e6f2ff; padding: 15px; border-radius: 8px; border: 1px solid #b3d4ff; margin-bottom: 20px;">
+                    <h4 style="margin: 0 0 10px 0; color: #0056b3;">🔔 Send Notification to this Customer</h4>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="crm-notify-text" class="form-control" placeholder="Type a message (e.g., Special 20% discount for you!)" style="margin:0; flex:1;">
+                        <input type="hidden" id="crm-current-user-id">
+                        <button class="btn-submit btn-blue" onclick="sendDirectNotification()" style="width: auto; padding: 0 20px;">Send</button>
+                    </div>
+                </div>
+
+                <h3 style="border-bottom: 2px solid #eee; padding-bottom: 10px;">Saved Addresses</h3>
+                <div id="crm-address-list" style="margin-bottom: 30px;">
+                    <p style="color: gray; font-size: 13px;">No addresses saved.</p>
+                </div>
+
+                <h3 style="border-bottom: 2px solid #eee; padding-bottom: 10px;">Order History</h3>
+                <div id="crm-orders-list" class="order-history-list">
+                    <p style="text-align: center; color: gray; padding: 20px;">Loading order history...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="image-viewer-modal" class="modal" style="z-index: 15000;">
+        <div class="modal-content" style="max-width: 500px; padding: 20px; text-align: center; background: transparent; box-shadow: none;">
+            <span class="close-btn" onclick="document.getElementById('image-viewer-modal').style.display='none'" style="position: absolute; right: 10px; top: 0; background: #fff; border-radius: 50%; width: 40px; height: 40px; line-height: 40px; color: #111;">&times;</span>
+            <img id="viewer-img" src="" style="max-width: 100%; max-height: 80vh; border-radius: 8px; box-shadow: 0 5px 25px rgba(0,0,0,0.5);">
+            <h3 id="viewer-title" style="color: white; margin-top: 15px; text-shadow: 0 2px 4px rgba(0,0,0,0.8);"></h3>
+        </div>
+    </div>
+
+    <div style="display: none;">
+        <div id="invoice-template" style="padding: 40px; font-family: Arial, sans-serif; color: #333; background: #fff; width: 100%; min-width: 700px; max-width: 800px; margin: auto; position: relative; box-sizing: border-box;">
+            
+            <div id="pdf-watermark" style="position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 120px; font-weight: bold; opacity: 0.1; color: red; pointer-events: none; white-space: nowrap; z-index: 0;">
+                DUE
+            </div>
+
+            <div style="display: flex; justify-content: space-between; border-bottom: 3px solid #d97d00; padding-bottom: 20px; margin-bottom: 30px; position: relative; z-index: 1;">
+                <div>
+                    <h1 style="color: #d97d00; margin: 0; font-size: 42px; font-style: italic; font-weight: 900; letter-spacing: 1px;">eBong</h1>
+                    <p style="margin: 5px 0; color: #555; font-size: 14px;">Premium Fashion Brand</p>
+                </div>
+                <div style="text-align: right;">
+                    <h2 style="margin: 0 0 5px 0; font-size: 28px; letter-spacing: 2px;">INVOICE</h2>
+                    <p style="margin: 2px 0; font-size: 14px;"><strong>Tracking ID:</strong> <span id="pdf-tracking-id"></span></p>
+                    <p style="margin: 2px 0; font-size: 14px;"><strong>Order Date:</strong> <span id="pdf-date"></span></p>
+                    <p style="margin: 2px 0; color: gray; font-size: 12px;"><strong>Billed By:</strong> <span id="pdf-admin-name"></span></p>
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 30px; display: flex; justify-content: space-between; position: relative; z-index: 1;">
+                <div>
+                    <h3 style="border-bottom: 2px solid #eee; padding-bottom: 5px; margin-bottom: 10px; color: #d97d00;">Billed To:</h3>
+                    <p style="margin: 3px 0; font-weight: bold; font-size: 18px;" id="pdf-name"></p>
+                    <p style="margin: 3px 0; font-size: 14px;">📞 <span id="pdf-phone"></span></p>
+                    <p style="margin: 3px 0; font-size: 14px; max-width: 300px;">📍 <span id="pdf-address"></span></p>
+                </div>
+                <div style="text-align: right;">
+                    <h3 style="border-bottom: 2px solid #eee; padding-bottom: 5px; margin-bottom: 10px; color: #d97d00;">Order Status:</h3>
+                    <p style="margin: 3px 0; font-weight: bold; font-size: 16px;" id="pdf-order-status"></p>
+                </div>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px; border: 1px solid #ddd; box-sizing: border-box; position: relative; z-index: 1;">
+                <thead>
+                    <tr style="background: #f4f4f4;">
+                        <th style="text-align: left; padding: 12px; border-bottom: 2px solid #ccc; font-size: 14px; width: 60%;">Product Details</th>
+                        <th style="text-align: center; padding: 12px; border-bottom: 2px solid #ccc; font-size: 14px; width: 15%;">Qty</th>
+                        <th style="text-align: right; padding: 12px; border-bottom: 2px solid #ccc; font-size: 14px; width: 25%;">Price</th>
+                    </tr>
+                </thead>
+                <tbody id="pdf-items">
+                    </tbody>
+            </table>
+            
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 30px; position: relative; z-index: 1;">
+                <div style="width: 40%;">
+                    <p style="font-weight: bold; font-size: 16px; margin-bottom: 5px; color: #111;">Payment Details:</p>
+                    <div style="background: #f9f9f9; padding: 10px; border-radius: 5px; border: 1px solid #eee;">
+                        <p style="margin: 0 0 5px 0; font-size: 13px;">Method: <strong id="pdf-method"></strong></p>
+                        <p style="margin: 0; font-size: 13px; color: #d97d00;">Advance Paid: <strong id="pdf-advance-paid">Tk 0</strong></p>
+                    </div>
+                </div>
+                <div style="width: 60%; text-align: right;">
+                    <p id="pdf-discount" style="font-size: 14px; color: green; margin: 5px 0;"></p>
+                    <p id="pdf-spin" style="font-size: 14px; color: #d97d00; margin: 5px 0; font-weight: bold;"></p>
+                    <p style="font-size: 14px; margin: 5px 0; border-bottom: 1px solid #eee; padding-bottom: 5px;">Delivery Charge: Tk <span id="pdf-delivery"></span></p>
+                    
+                    <h3 style="margin: 10px 0 5px 0; color: #555; font-size: 18px;">Total Bill: Tk <span id="pdf-total"></span></h3>
+                    <h2 style="margin: 5px 0; color: #111; font-size: 26px; background: #ffebeb; display: inline-block; padding: 5px 15px; border-radius: 5px; border: 1px dashed red;">Cash to Collect: Tk <span id="pdf-due-total">0</span></h2>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 60px; font-size: 13px; color: #888; border-top: 2px dashed #eee; padding-top: 20px; position: relative; z-index: 1;">
+                <p style="margin: 5px 0; font-weight: bold; color: #555;">This is a system-generated invoice.</p>
+                <p style="margin: 5px 0;">Track your order status live at <b id="pdf-dynamic-domain">www.ebong.com</b> using your Tracking ID.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            
+            if(event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
+        }
+        
+        function togglePosAdvanceAmount() {
+            const status = document.getElementById('pos_payment_status').value;
+            const advanceBox = document.getElementById('pos_advance_box');
+            if(status === 'Partial Paid' || status === 'Delivery Paid') {
+                advanceBox.style.display = 'block';
+            } else {
+                advanceBox.style.display = 'none';
+                document.getElementById('pos_advance_amount').value = 0;
+            }
+            if(typeof renderPosCart === 'function') renderPosCart();
+        }
+        
+        function toggleUpdateAdvanceAmount(dbId) {
+            const status = document.getElementById(`status_pay_${dbId}`).value;
+            const advBox = document.getElementById(`update_adv_box_${dbId}`);
+            if(status === 'Partial Paid' || status === 'Delivery Paid') {
+                advBox.style.display = 'block';
+            } else {
+                advBox.style.display = 'none';
+            }
+        }
+    </script>
+    <script type="module" src="admin.js"></script>
+</body>
+</html>

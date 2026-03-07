@@ -1,0 +1,1357 @@
+/* ==========================================
+   ⭐ UNIVERSAL FIX (Prevents Zoom-out/Overflow on Mobile)
+   ========================================== */
+*, *::before, *::after { 
+    box-sizing: border-box; 
+}
+
+html, body {
+    overflow-x: hidden; /* ডানে-বামে স্ক্রল বন্ধ করে সাইট ফিট রাখবে */
+    width: 100%;
+    max-width: 100%;
+}
+
+/* 🔴 NEW: Prevents body from scrolling when modal is open */
+body.modal-open {
+    overflow: hidden !important;
+}
+
+/* Color Variables (Only Light Theme - Premium Look) */
+:root { 
+    --brand-color: #ff6a00; /* Daraz/Alibaba like vibrant orange */
+    --brand-hover: #e65c00;
+    --text-dark: #333333; 
+    --text-light: #777777; 
+    --bg-white: #ffffff; 
+    --bg-light-grey: #f5f5f5; /* Premium soft background */
+    --bg-card: #ffffff; 
+    --border-color: #e0e0e0; 
+}
+
+/* Dark Theme Variables */
+body.dark-theme { 
+    --text-dark: #f1f1f1; 
+    --text-light: #aaaaaa; 
+    --bg-white: #121212; 
+    --bg-light-grey: #1a1a1a; 
+    --bg-card: #1e1e1e; 
+    --border-color: #333333; 
+}
+
+/* Base Styles */
+body { 
+    font-family: 'Poppins', sans-serif; 
+    margin: 0; 
+    padding: 0; 
+    background-color: var(--bg-light-grey); 
+    color: var(--text-dark); 
+    transition: 0.4s; 
+}
+a { text-decoration: none; color: inherit; }
+.container { width: 95%; max-width: 1300px; margin: 0 auto; }
+
+/* ⭐ UPDATED: Header & Top Bar (Reduced Padding & Gap) */
+.top-bar { 
+    background-color: var(--brand-color); 
+    color: #fff; 
+    text-align: center; 
+    padding: 6px 10px; /* Reduced from 10px */
+    font-size: 13px; 
+    font-weight: 500; 
+    margin-bottom: 0;
+}
+
+.headline-bar {
+    padding: 3px 0 !important; /* Reduced padding for the marquee */
+    margin: 0;
+}
+
+.main-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 5px 0 !important; /* ⭐ REDUCED: Was 15px, now 5px to close the gap */
+    margin: 0;
+}
+
+.header-left, .header-right { flex: 1; display: flex; align-items: center; }
+.header-right { justify-content: flex-end; gap: 25px; /* ⭐ Increased gap so big icons don't touch */ }
+.header-center { flex: 2; text-align: center; }
+
+/* ⭐ UPDATED: Logo Styles (Reduced Max Height) */
+.header-logo {
+    line-height: 0; /* Ensures no extra space below the image */
+}
+.header-logo img {
+    max-height: 60px; /* ⭐ REDUCED: Was 90px, now 60px to fit perfectly */
+    width: auto;
+    object-fit: contain;
+    transition: 0.3s;
+}
+
+/* ⭐ UPDATED: BIG ICONS */
+.icon-btn { 
+    background: transparent; 
+    border: none; 
+    font-size: 28px !important; /* ⭐ Dark Mode Icon Boro kora holo */
+    color: var(--text-dark); 
+    cursor: pointer; 
+    transition: 0.3s; 
+    position: relative; /* Added relative positioning */
+}
+.cart-icon { 
+    position: relative; 
+    font-size: 32px !important; /* ⭐ Cart Icon aro Boro kora holo */
+}
+.cart-badge { 
+    position: absolute; 
+    top: -6px; 
+    right: -12px; 
+    background: red; 
+    color: white; 
+    font-size: 13px; 
+    padding: 3px 7px; 
+    border-radius: 50%; 
+    font-weight: bold; 
+    border: 2px solid var(--bg-white); /* ⭐ Badge ekti chotto border deya holo jate clear bujha jay */
+}
+
+/* Banner */
+.banner-section { 
+    text-align: center; 
+    margin-top: 5px !important; /* ⭐ REDUCED: Brings banner closer to menu */
+}
+.main-banner-img { width: 100%; height: auto; display: block; max-height: 400px; object-fit: cover; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);}
+
+/* ==========================================
+   ⭐ Category Navigation Bar Styles
+   ========================================== */
+.category-nav-bar {
+    background-color: var(--bg-light-grey);
+    border-bottom: 1px solid var(--border-color);
+    border-top: 1px solid var(--border-color);
+    position: sticky;
+    top: 0;
+    z-index: 900;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 8px 0; /* ⭐ REDUCED: Was 12px */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    margin-top: 0;
+}
+
+/* Hide scrollbar for cleaner look */
+.category-nav-bar::-webkit-scrollbar {
+    height: 4px;
+}
+.category-nav-bar::-webkit-scrollbar-thumb {
+    background: var(--brand-color);
+    border-radius: 10px;
+}
+
+#dynamic-category-menu {
+    list-style: none;
+    margin: 0;
+    padding: 0 5%;
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+}
+
+/* On mobile, align to start for scrolling */
+@media (max-width: 767px) {
+    #dynamic-category-menu { justify-content: flex-start; }
+}
+
+.category-link {
+    color: var(--text-dark);
+    font-weight: 600;
+    font-size: 13px;
+    text-transform: uppercase;
+    padding: 6px 15px; /* ⭐ REDUCED: Was 8px */
+    border-radius: 20px;
+    transition: 0.3s;
+    cursor: pointer;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    display: inline-block;
+}
+
+.category-link:hover {
+    background-color: var(--brand-color);
+    color: #fff;
+    border-color: var(--brand-color);
+}
+
+/* ⭐ UPDATED: Product Grid & Cards (Premium Shadow Added) */
+.category-section { margin-bottom: 40px; }
+.section-header { border-bottom: 2px solid var(--border-color); padding-bottom: 10px; margin-bottom: 20px; }
+.product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+.product-card { 
+    border: 1px solid var(--border-color); 
+    border-radius: 12px; 
+    padding: 15px; 
+    background: var(--bg-card); 
+    text-align: center; 
+    transition: all 0.3s ease; 
+    position: relative; 
+    overflow: hidden; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06); /* ⭐ Premium subtle shadow added */
+}
+.product-card:hover { 
+    box-shadow: 0 12px 25px rgba(0,0,0,0.15); /* ⭐ Stronger shadow on hover */
+    border-color: var(--brand-color); 
+    transform: translateY(-5px); 
+}
+
+/* Product Buttons */
+.product-btns-container {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.add-to-cart-btn { 
+    flex: 1;
+    background: transparent; 
+    border: 1.5px solid var(--brand-color); 
+    color: var(--brand-color); 
+    padding: 10px 5px; 
+    border-radius: 6px; 
+    font-weight: 600; 
+    font-size: 13px;
+    cursor: pointer; 
+    transition: 0.3s; 
+}
+.add-to-cart-btn:hover { background: var(--brand-color); color: #fff; }
+
+.buy-now-btn { 
+    flex: 1;
+    background: var(--brand-color); 
+    border: 1.5px solid var(--brand-color); 
+    color: #fff; 
+    padding: 10px 5px; 
+    border-radius: 6px; 
+    font-weight: 700; 
+    font-size: 13px;
+    cursor: pointer; 
+    transition: 0.3s; 
+}
+.buy-now-btn:hover { background: var(--brand-hover); border-color: var(--brand-hover); transform: scale(1.02); }
+
+/* ==========================================
+   ⭐ UPDATED: Modal Styles (Fixed Scroll Issue)
+   ========================================== */
+.modal { 
+    display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; 
+    background-color: rgba(0,0,0,0.7); backdrop-filter: blur(4px); 
+    overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; 
+}
+
+/* ⭐ FIX: Allowed scroll on modal content */
+.modal-content { 
+    background-color: var(--bg-card); margin: 5% auto; padding: 30px; border-radius: 15px; 
+    width: 90%; max-width: 450px; position: relative; 
+    max-height: 85vh; overflow-y: auto !important; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; 
+    box-shadow: 0 20px 50px rgba(0,0,0,0.2); 
+}
+
+.form-control { 
+    width: 100%; 
+    padding: 12px; 
+    border: 1px solid var(--border-color); 
+    border-radius: 8px; 
+    box-sizing: border-box; 
+    font-family: 'Poppins', sans-serif; 
+    background: var(--bg-white); 
+    color: var(--text-dark); 
+    margin-bottom: 12px;
+    outline: none;
+}
+.form-control:focus { border-color: var(--brand-color); }
+
+/* ==========================================
+   🔴 ULTIMATE DARK MODE FIX
+   ========================================== */
+
+body.dark-theme #checkout-modal input,
+body.dark-theme #checkout-modal textarea,
+body.dark-theme #checkout-modal select {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border: 1px solid #777777 !important;
+}
+
+body.dark-theme #checkout-modal .cart-summary {
+    background-color: #f9f9f9 !important;
+    color: #000000 !important;
+}
+
+body.dark-theme #checkout-modal .cart-summary * {
+    color: #000000 !important;
+}
+
+body.dark-theme #payment-instruction-box {
+    background-color: #fff8e1 !important; /* Light Yellow */
+    color: #000000 !important;
+    border: 1px solid #ffe082 !important;
+}
+
+body.dark-theme #payment-instruction-box * {
+    color: #000000 !important;
+}
+
+/* ==========================================
+   ⭐ NEW: Product Details Modal Styles
+   ========================================== */
+.product-details-content {
+    border-radius: 12px !important;
+}
+
+.details-layout {
+    display: flex;
+    flex-direction: column;
+}
+
+@media (min-width: 768px) {
+    .details-layout { flex-direction: row; }
+    .details-image-section { width: 45%; border-right: 1px solid var(--border-color); padding: 20px; background: var(--bg-light-grey); }
+    .details-info-section { width: 55%; padding: 30px; }
+}
+
+@media (max-width: 767px) {
+    .details-image-section { padding: 15px; background: var(--bg-light-grey); }
+    .details-info-section { padding: 20px; }
+}
+
+#main-detail-image {
+    width: 100%;
+    height: auto; /* ⭐ FIX: Height Auto */
+    aspect-ratio: 1 / 1; /* ⭐ FIX: Maintain proportion */
+    object-fit: contain; /* ⭐ FIX: Prevents cropping */
+    border-radius: 8px;
+    background: #fff;
+    margin-bottom: 15px;
+    transition: 0.3s ease;
+}
+
+.thumbnail-gallery {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+}
+
+.thumbnail-gallery img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    opacity: 0.6;
+}
+
+.thumbnail-gallery img:hover, .thumbnail-gallery img.active {
+    border-color: var(--brand-color);
+    opacity: 1;
+}
+
+.details-info-section h2 { margin-top: 0; font-size: 24px; margin-bottom: 5px; }
+.detail-code { color: var(--brand-color); font-weight: bold; font-size: 14px; margin-bottom: 15px; }
+.detail-price { font-size: 22px; font-weight: bold; margin-bottom: 20px; }
+.detail-description { font-size: 14px; color: var(--text-light); line-height: 1.6; margin-bottom: 25px; }
+.details-action-btns { display: flex; gap: 15px; }
+
+/* Scroll Hint (Mobile Only) */
+.scroll-hint { display: none; text-align: center; color: #888; font-size: 12px; margin-bottom: 10px; animation: bounce 2s infinite; }
+@keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-5px);} 60% {transform: translateY(-3px);} }
+
+/* ==========================================
+   ⭐ NEW: REVIEW MARQUEE (HEADLINE STYLE)
+   ========================================== */
+.reviews-marquee-wrapper {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    padding: 15px 0;
+    margin-bottom: 40px;
+    background: var(--bg-light-grey);
+    border-top: 1px dashed var(--border-color);
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.reviews-marquee-wrapper::before, .reviews-marquee-wrapper::after {
+    content: ''; position: absolute; top: 0; width: 60px; height: 100%; z-index: 2;
+}
+.reviews-marquee-wrapper::before { left: 0; background: linear-gradient(to right, var(--bg-light-grey), transparent); }
+.reviews-marquee-wrapper::after { right: 0; background: linear-gradient(to left, var(--bg-light-grey), transparent); }
+
+#reviews-container {
+    display: flex !important;
+    gap: 20px;
+    width: max-content;
+    animation: marquee-scroll 25s linear infinite;
+    align-items: center;
+}
+
+#reviews-container:hover { animation-play-state: paused; }
+
+#reviews-container > div {
+    width: 320px;
+    flex-shrink: 0;
+    background: var(--bg-card) !important;
+    border: 1px solid rgba(217, 125, 0, 0.3) !important;
+    border-left: 4px solid var(--brand-color) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+    padding: 15px 20px !important;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#reviews-container > div:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(217, 125, 0, 0.2) !important;
+}
+
+@keyframes marquee-scroll {
+    0% { transform: translateX(100vw); }
+    100% { transform: translateX(-100%); }
+}
+
+/* Dark Mode Tweaks for New Sections */
+body.dark-theme .category-nav-bar { background-color: #1a1a1a; border-color: #333; }
+body.dark-theme .category-link { background: #222; border-color: #333; }
+body.dark-theme .details-image-section { background: #1a1a1a; }
+body.dark-theme #main-detail-image { background: #222; }
+body.dark-theme .reviews-marquee-wrapper { background: #111; border-color: #333; }
+body.dark-theme .reviews-marquee-wrapper::before { background: linear-gradient(to right, #111, transparent); }
+body.dark-theme .reviews-marquee-wrapper::after { background: linear-gradient(to left, #111, transparent); }
+
+/* ==========================================
+   🎡 NEW: Spin Wheel & Animation Styles
+   ========================================== */
+
+/* Button Pulse Animation */
+@keyframes pulse { 
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(216, 67, 21, 0.7); } 
+    50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(216, 67, 21, 0); } 
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(216, 67, 21, 0); } 
+}
+
+/* Ensure Spin Wheel smooth rotation */
+#spin-wheel-circle {
+    transition: transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99); /* Realistic spin effect */
+}
+
+/* Dark Mode support for Spin Wheel Modal */
+body.dark-theme #spin-wheel-modal .modal-content {
+    background-color: #1e1e1e !important;
+    color: #f1f1f1 !important;
+    border: 1px solid #333;
+}
+
+body.dark-theme #spin-wheel-modal h2 {
+    color: #ff9800; /* Lighter orange for dark mode */
+}
+
+body.dark-theme #close-spin-modal {
+    color: #fff;
+}
+
+/* ==========================================
+   📱 NEW: MOBILE RESPONSIVENESS (SUPER COMPACT)
+   ========================================== */
+@media (max-width: 768px) {
+    /* Header Adjustments */
+    .top-bar { font-size: 11px; padding: 6px; flex-direction: column; gap: 4px; }
+    .main-header { padding: 8px 0 !important; }
+    .header-logo img { max-height: 45px; } 
+    .header-right { gap: 12px; }
+    .icon-btn { font-size: 22px !important; }
+    .cart-icon { font-size: 24px !important; }
+    .cart-badge { top: -2px; right: -6px; padding: 2px 5px; font-size: 10px; }
+
+    /* Menu Adjustments */
+    .category-nav-bar { padding: 5px 0; margin-bottom: 10px; }
+    .category-link { padding: 4px 10px; font-size: 11px; }
+
+    /* 🔴 COMPACT PRODUCT GRID (2 COLUMNS FOR MOBILE) */
+    .product-grid { 
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 8px; 
+        padding: 0 5px; 
+    }
+    
+    .product-card { 
+        padding: 6px !important; 
+        border-radius: 8px; 
+    }
+    
+    .product-card > div[style*="padding: 10px"] {
+        padding: 5px !important; 
+    }
+
+    .product-card img, .product-slider-container, .view-details-trigger[style*="height: 200px"] {
+        height: auto !important; 
+        aspect-ratio: 1 / 1; 
+        object-fit: contain !important; 
+    }
+
+    .product-name { 
+        font-size: 11px !important; 
+        margin-bottom: 2px !important; 
+        white-space: nowrap; 
+        overflow: hidden; 
+        text-overflow: ellipsis; 
+    }
+    
+    .product-card p { font-size: 10px !important; margin: 2px 0 !important; }
+    .product-card .current-price { font-size: 12px !important; }
+    .product-card p[style*="height: 35px"] { display: none !important; }
+    
+    .product-card div[style*="display: flex"] { gap: 4px !important; margin-top: 6px !important; }
+    
+    .add-to-cart-btn, .buy-now-btn { 
+        font-size: 9px !important; 
+        padding: 6px 2px !important; 
+        border-radius: 4px !important;
+    }
+
+    /* ⭐ FIX FOR MOBILE SCROLLING: Allowed scroll on modal content */
+    .modal-content { padding: 15px; width: 95%; margin: 5% auto; max-height: 85vh; overflow-y: auto !important; }
+    
+    /* ⭐ FIX FOR MOBILE MAIN IMAGE SIZE (To stop it from taking the full screen) */
+    #main-detail-image { 
+        height: auto !important; 
+        max-height: 300px !important; 
+        aspect-ratio: auto !important; 
+        object-fit: contain !important; 
+        display: block !important;
+    } 
+    
+    .details-info-section h2 { font-size: 18px; margin-top: 10px; }
+    .detail-price { font-size: 18px; margin-bottom: 10px; }
+    .details-action-btns { flex-direction: column; gap: 8px; }
+    .details-action-btns button { padding: 10px !important; font-size: 13px !important; }
+    .scroll-hint { display: block; } 
+
+    /* ==========================================
+       🔴 NEW: REVIEWS SECTION MOBILE MARQUEE
+       ========================================== */
+    #reviews-container {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow: visible; /* Let marquee handle overflow */
+        gap: 15px !important;
+        animation: marquee-scroll 20s linear infinite; /* Faster on mobile */
+    }
+    #reviews-container > div {
+        width: 260px !important; /* Smaller width for mobile */
+        padding: 12px 15px !important; 
+    }
+    #reviews-container > div strong { font-size: 13px !important; }
+    #reviews-container > div p { font-size: 11px !important; }
+    #reviews-container > div small { font-size: 10px !important; }
+
+    /* ==========================================
+       🔴 NEW: COMPACT REVIEW FORM & FOOTER FOR MOBILE
+       ========================================== */
+    section > div[style*="max-width: 600px"] {
+        padding: 20px !important; /* box choto kora holo */
+    }
+    section > div h3 { font-size: 18px !important; margin-bottom: 15px !important; }
+    #review-form input, #review-form select, #review-form textarea {
+        padding: 10px !important; font-size: 12px !important;
+    }
+    #review-form button { padding: 12px !important; font-size: 14px !important; }
+
+    /* ⭐ FIX FOR FOOTER ALIGNMENT ON MOBILE */
+    footer { padding: 30px 15px 20px !important; margin-top: 40px !important; }
+    footer .container { 
+        display: flex !important; 
+        flex-direction: column; 
+        gap: 20px !important; 
+    }
+    footer .container > div { 
+        border-bottom: 1px solid #333; 
+        padding-bottom: 15px; 
+        width: 100%; /* Ensure full width */
+    }
+    footer .container > div:last-child { border-bottom: none; }
+    
+    footer h2 { font-size: 24px !important; }
+    footer h3 { font-size: 15px !important; margin-bottom: 10px !important; padding-bottom: 5px !important; }
+    footer p { font-size: 12px !important; margin: 5px 0 !important; }
+    
+    /* ⭐ FIX FOR SOCIAL BUTTONS (Side by side on mobile) */
+    footer div[style*="display: flex; gap: 15px;"] {
+        display: flex !important;
+        flex-direction: row !important; /* Force horizontal alignment */
+        gap: 10px !important;
+        width: 100%;
+    }
+    
+    footer div[style*="display: flex; gap: 15px;"] a {
+        flex: 1; /* Equal space for both buttons */
+        padding: 10px !important; 
+        font-size: 12px !important; 
+        text-align: center;
+        white-space: nowrap; /* Prevent text wrapping inside button */
+    }
+
+    /* ⭐ FIX FOR PAYMENT BADGES (Wrap and small size on mobile) */
+    footer div[style*="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;"] {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 5px !important;
+        justify-content: flex-start; /* Align left */
+        width: 100%;
+    }
+    
+    footer div[style*="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;"] span {
+        padding: 5px 8px !important; 
+        font-size: 11px !important; /* Smaller text */
+        border-radius: 4px !important;
+        white-space: nowrap;
+    }
+}
+
+/* ==========================================
+   ⭐ SEARCH BAR CSS 
+   ========================================== */
+.search-container {
+    width: 95%; max-width: 600px; margin: 15px auto; display: flex; position: relative;
+}
+.search-input {
+    width: 100%; padding: 12px 20px; border: 2px solid var(--brand-color); border-radius: 30px; 
+    font-family: 'Poppins', sans-serif; font-size: 14px; outline: none; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+.search-btn {
+    position: absolute; right: 5px; top: 5px; background: var(--brand-color); border: none; 
+    color: white; padding: 7px 20px; border-radius: 25px; cursor: pointer; font-weight: bold; transition: 0.3s;
+}
+.search-btn:hover { background: var(--brand-hover); }
+
+/* ==========================================
+   🔴 FAKE SALES NOTIFICATION POP-UP (FIXED HEIGHT)
+   ========================================== */
+#sales-popup {
+    position: fixed; 
+    top: 50%; 
+    transform: translateY(-50%); 
+    right: -400px; 
+    left: auto; 
+    background: var(--bg-card); 
+    border-radius: 8px; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15); 
+    display: flex; 
+    align-items: center; 
+    padding: 10px; 
+    z-index: 9999; 
+    transition: right 0.5s ease-in-out; 
+    width: 280px; 
+    height: 70px; 
+    border-right: 4px solid var(--brand-color); 
+    border-left: none; 
+    overflow: hidden;
+}
+#sales-popup.show { right: 20px; }
+.sales-popup-img { width: 45px; height: 45px; border-radius: 5px; object-fit: cover; margin-right: 12px; background: #eee; flex-shrink: 0; }
+.sales-popup-text { flex: 1; overflow: hidden; }
+.sales-popup-text p { margin: 0; font-size: 11px; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sales-popup-text h4 { margin: 2px 0; font-size: 13px; color: var(--brand-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sales-time { font-size: 10px; color: #888; }
+
+/* Dark Mode Extra */
+html body.dark-theme .search-input { background: #111; color: #fff; border-color: #444; }
+html body.dark-theme .search-input:focus { border-color: var(--brand-color); }
+html body.dark-theme #sales-popup { background: #1e1e1e; border-right-color: var(--brand-color); }
+html body.dark-theme .sales-popup-text p { color: #aaa; }
+
+@media (max-width: 768px) {
+    #sales-popup { 
+        width: calc(100% - 40px); 
+        max-width: 300px;
+        top: auto; 
+        bottom: 80px; 
+        transform: none; 
+        right: -400px;
+        height: 65px; 
+    }
+    #sales-popup.show { right: 20px; } 
+}
+
+/* ==========================================
+   ⭐ NEW: AUTO-SLIDING BANNER STYLES (PERFECT FIT, NO CROP)
+   ========================================== */
+.banner-section {
+    text-align: center; 
+    margin-top: 10px !important; 
+    margin-bottom: 20px;
+}
+
+#main-banner-slider {
+    position: relative;
+    width: 100%;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    background-color: transparent; 
+    display: grid; /* Magic Grid trick */
+    overflow: hidden;
+}
+
+.main-banner-img,
+.multi-banner-slide {
+    grid-area: 1 / 1; /* Puts all images in the exact same cell */
+    width: 100%;
+    height: auto !important; /* Let image natural height take over */
+    max-height: 450px;
+    object-fit: contain !important; /* 100% ensures it NEVER crops */
+    display: block;
+    margin: auto;
+}
+
+.multi-banner-slide {
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+    z-index: 1;
+}
+
+.multi-banner-slide.active {
+    opacity: 1;
+    z-index: 2;
+}
+
+/* Banner Dots */
+.banner-dot {
+    height: 10px;
+    width: 10px;
+    margin: 0 5px;
+    background-color: #bbb;
+    border-radius: 50%;
+    display: inline-block;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+}
+
+.banner-dot.active {
+    background-color: var(--brand-color);
+}
+
+/* ⭐ FIX FOR MOBILE MAIN IMAGE SIZE (To stop it from taking the full screen) */
+@media (max-width: 768px) {
+    #main-detail-image { 
+        height: 250px !important; 
+        max-height: 250px !important; 
+        width: 100% !important;
+        margin: 0 auto 10px auto !important;
+        display: block !important;
+        object-fit: contain !important; 
+    } 
+    .modal-content { padding: 15px; width: 95%; margin: 5% auto; max-height: 85vh; overflow-y: auto !important; }
+}
+
+/* ==========================================
+   💬 NEW CSS: FLOATING CHAT & REVIEW BUTTONS
+   ========================================== */
+.floating-action-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 5000;
+}
+
+.chat-toggle-btn, .review-toggle-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: none;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    transition: transform 0.3s ease, background 0.3s ease;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.chat-toggle-btn { background: #007bff; }
+.chat-toggle-btn:hover { background: #0056b3; transform: scale(1.1); }
+
+.review-toggle-btn { background: #ff9800; font-size: 24px; }
+.review-toggle-btn:hover { background: #e68a00; transform: scale(1.1); }
+
+.chat-unread-badge {
+    position: absolute; 
+    top: -5px; 
+    right: -5px; 
+    background: red; 
+    color: white;
+    font-size: 12px; 
+    width: 22px; 
+    height: 22px; 
+    border-radius: 50%; 
+    display: flex;
+    justify-content: center; 
+    align-items: center; 
+    font-weight: bold; 
+    border: 2px solid white;
+}
+
+/* 💬 Chat Box Modal */
+#custom-chat-box {
+    display: none; 
+    position: fixed; 
+    bottom: 90px; 
+    right: 20px; 
+    width: 350px; 
+    height: 450px;
+    background: var(--bg-card); 
+    border-radius: 15px; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    z-index: 5000; 
+    flex-direction: column; 
+    border: 1px solid var(--border-color); 
+    overflow: hidden;
+}
+
+.chat-header {
+    background: #007bff; 
+    color: white; 
+    padding: 15px; 
+    font-weight: bold; 
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+}
+
+.chat-messages {
+    flex: 1; 
+    padding: 15px; 
+    overflow-y: auto; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; 
+    background: var(--bg-light-grey);
+}
+
+.chat-msg { 
+    max-width: 80%; 
+    padding: 10px 12px; 
+    border-radius: 12px; 
+    font-size: 13px; 
+    line-height: 1.4; 
+    position: relative; 
+}
+
+.msg-user { 
+    background: #007bff; 
+    color: white; 
+    align-self: flex-end; 
+    border-bottom-right-radius: 2px; 
+}
+
+.msg-admin { 
+    background: #e5e5ea; 
+    color: black; 
+    align-self: flex-start; 
+    border-bottom-left-radius: 2px; 
+}
+
+.msg-system { 
+    text-align: center; 
+    color: gray; 
+    font-size: 11px; 
+    align-self: center; 
+    background: none; 
+}
+
+.chat-input {
+    display: flex; 
+    border-top: 1px solid var(--border-color); 
+    padding: 10px; 
+    background: var(--bg-card); 
+    gap: 10px;
+}
+
+.chat-input input {
+    flex: 1; 
+    border: 1px solid var(--border-color); 
+    padding: 10px; 
+    border-radius: 20px; 
+    outline: none; 
+    font-family: 'Poppins', sans-serif;
+    background: var(--bg-white);
+    color: var(--text-dark);
+}
+
+.chat-input button {
+    background: #007bff; 
+    color: white; 
+    border: none; 
+    padding: 0 20px; 
+    border-radius: 20px; 
+    font-weight: bold; 
+    cursor: pointer;
+}
+
+/* ⭐ NEW CSS: Pre-Chat Form */
+.pre-chat-form {
+    flex: 1; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    padding: 20px; 
+    text-align: center; 
+    background: var(--bg-card);
+}
+
+.pre-chat-form h4 { 
+    margin-top: 0; 
+    color: #007bff; 
+    font-size: 18px; 
+    margin-bottom: 10px; 
+}
+
+.pre-chat-form p { 
+    font-size: 13px; 
+    color: gray; 
+    margin-bottom: 20px; 
+}
+
+.pre-chat-form input {
+    width: 100%; 
+    padding: 12px; 
+    border: 1px solid #ccc; 
+    border-radius: 8px; 
+    margin-bottom: 15px; 
+    font-family: 'Poppins', sans-serif; 
+    outline: none; 
+    box-sizing: border-box;
+    background: var(--bg-white);
+    color: var(--text-dark);
+}
+
+.pre-chat-form button {
+    background: #007bff; 
+    color: white; 
+    border: none; 
+    padding: 12px; 
+    border-radius: 8px; 
+    font-weight: bold; 
+    font-size: 15px; 
+    cursor: pointer; 
+    width: 100%; 
+    transition: 0.3s;
+}
+
+.pre-chat-form button:hover { 
+    background: #0056b3; 
+}
+
+/* ==========================================
+   ⭐ NEW CSS: CUSTOMER PROFILE & ORDER HISTORY
+   ========================================== */
+#profile-orders-list .order-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+}
+
+#profile-orders-list .order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px dashed var(--border-color);
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+}
+
+#profile-orders-list .order-date {
+    font-size: 12px;
+    color: gray;
+}
+
+#profile-orders-list .order-status {
+    font-size: 12px;
+    font-weight: bold;
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+
+#profile-orders-list .status-pending { background: #fff3e0; color: #e65100; }
+#profile-orders-list .status-confirmed { background: #e8f5e9; color: #2e7d32; }
+#profile-orders-list .status-deleted { background: #ffebee; color: #c62828; }
+
+/* ⭐ NEW CSS: ADDRESS BOOK STYLES */
+.address-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border-color);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    position: relative;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.address-card:hover { border-color: var(--brand-color); }
+.address-card.is-default { border-color: var(--brand-color); background: #fff8e1; }
+.address-card h5 { margin: 0 0 5px 0; color: var(--brand-color); font-size: 15px; }
+.address-card p { margin: 0; font-size: 13px; color: var(--text-dark); line-height: 1.5; }
+.address-card .default-badge { position: absolute; top: 15px; right: 15px; background: #28a745; color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+.address-card .delete-btn { position: absolute; bottom: 15px; right: 15px; background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+
+
+/* ==========================================
+   ⭐ NEW CSS: DROPDOWN MENU, NOTIFICATION & WISHLIST
+   ========================================== */
+
+/* User Dropdown */
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background-color: var(--bg-card);
+    min-width: 180px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    border-radius: 10px;
+    z-index: 2000;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+.dropdown-menu.show { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+.dropdown-item {
+    padding: 12px 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-dark);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.2s;
+    cursor: pointer;
+}
+.dropdown-item:last-child { border-bottom: none; }
+.dropdown-item:hover { background-color: var(--bg-light-grey); color: var(--brand-color); }
+
+/* Wishlist Heart Icon (Updated for Text Change) */
+.wishlist-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255,255,255,0.9);
+    border: none;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 10;
+    transition: 0.3s;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+.wishlist-btn:hover { transform: scale(1.1); }
+/* Let Javascript handle the emoji content ❤️ or 🤍 */
+
+/* Notification Panel */
+.notification-panel {
+    display: none;
+    position: absolute;
+    top: 60px;
+    right: 60px; /* Positioned relative to the bell icon */
+    background-color: var(--bg-card);
+    width: 320px;
+    max-height: 400px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    border-radius: 12px;
+    z-index: 2000;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+}
+.notification-panel.show { display: block; animation: fadeIn 0.3s ease; }
+.noti-header { padding: 15px; background: var(--bg-light-grey); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 5; }
+.noti-item { padding: 15px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; background: var(--bg-card); transition: 0.2s; }
+.noti-item:hover { background: var(--bg-light-grey); }
+.noti-item.unread { background: #fff8e1; border-left: 3px solid var(--brand-color); }
+.noti-content { flex: 1; }
+.noti-content p { margin: 0 0 5px 0; font-size: 13px; color: var(--text-dark); line-height: 1.4; }
+.noti-content small { font-size: 11px; color: gray; }
+.noti-delete { background: none; border: none; color: #ff3b30; cursor: pointer; font-size: 16px; padding: 5px; opacity: 0.6; transition: 0.2s; }
+.noti-delete:hover { opacity: 1; transform: scale(1.1); }
+
+
+/* ==========================================
+   ⭐ NEW: Order Tracker Styles
+   ========================================== */
+.tracker-container {
+    width: 95%; max-width: 600px; margin: 15px auto; background: var(--bg-card); padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid var(--border-color);
+}
+.tracker-input-group { display: flex; gap: 10px; }
+.tracker-input { flex: 1; padding: 10px 15px; border: 2px solid var(--border-color); border-radius: 8px; font-family: 'Poppins', sans-serif; outline: none; }
+.tracker-input:focus { border-color: var(--brand-color); }
+.tracker-btn { background: var(--brand-color); color: white; border: none; padding: 0 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+
+.tracker-result { margin-top: 20px; display: none; padding: 15px; border-radius: 8px; background: #f9f9f9; border: 1px solid #ddd; }
+.timeline { list-style: none; padding: 0; margin: 0; position: relative; }
+.timeline::before { content: ''; position: absolute; top: 0; bottom: 0; left: 15px; width: 2px; background: #ddd; }
+.timeline li { margin-bottom: 15px; position: relative; padding-left: 40px; }
+.timeline li::before { content: ''; position: absolute; left: 8px; top: 0; width: 16px; height: 16px; border-radius: 50%; background: #ccc; border: 2px solid #fff; }
+.timeline li.active::before { background: var(--brand-color); box-shadow: 0 0 0 3px rgba(217, 125, 0, 0.2); }
+.timeline li.completed::before { background: #28a745; }
+.timeline li h4 { margin: 0 0 5px 0; font-size: 14px; color: var(--text-dark); }
+.timeline li p { margin: 0; font-size: 12px; color: var(--text-light); }
+
+/* Dark Mode fixes for New Elements */
+body.dark-theme .msg-admin { background: #444; color: #fff; }
+body.dark-theme #profile-orders-list .order-card { background: #222; border-color: #444 !important; }
+body.dark-theme #profile-orders-list .order-header { border-color: #444 !important; }
+body.dark-theme .address-card { background: #222; border-color: #444; }
+body.dark-theme .address-card.is-default { background: #3a2a00; border-color: var(--brand-color); }
+body.dark-theme .dropdown-menu { background: #1e1e1e; border-color: #444; }
+body.dark-theme .dropdown-item { border-color: #444; }
+body.dark-theme .dropdown-item:hover { background-color: #111; }
+body.dark-theme .wishlist-btn { background: rgba(30,30,30,0.9); }
+body.dark-theme .notification-panel { background: #1e1e1e; border-color: #444; }
+body.dark-theme .noti-header { background: #111; border-color: #444; }
+body.dark-theme .noti-item { background: #1e1e1e; border-color: #444; }
+body.dark-theme .noti-item:hover { background: #111; }
+body.dark-theme .noti-item.unread { background: #3a2a00; }
+body.dark-theme .tracker-container { background: #1e1e1e; border-color: #444; }
+body.dark-theme .tracker-input { background: #111; color: #fff; border-color: #444; }
+body.dark-theme .tracker-result { background: #111; border-color: #444; }
+body.dark-theme .timeline::before { background: #444; }
+body.dark-theme .timeline li::before { border-color: #111; }
+
+@media (max-width: 768px) {
+    #custom-chat-box { width: 90%; right: 5%; bottom: 90px; height: 400px; }
+    .floating-action-btn { bottom: 80px; } 
+    .notification-panel { width: 90%; right: 5%; top: 70px; }
+    .dropdown-menu { width: 200px; right: 10px; }
+}
+
+/* ==========================================
+   ⭐ NEW CSS: PROFESSIONAL DROPDOWN MENU
+   ========================================== */
+   
+/* About Bar Styling */
+.about-bar {
+    background: linear-gradient(90deg, #111, #333);
+    color: #fff;
+    text-align: center;
+    padding: 10px 15px;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--brand-color);
+}
+
+.about-bar span {
+    margin: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Professional Desktop Category Navigation */
+.category-nav-bar {
+    background-color: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    padding: 0;
+    position: relative;
+    z-index: 1000;
+    overflow: visible; /* Override previous hidden to allow dropdowns */
+}
+
+#dynamic-category-menu {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: 0;
+}
+
+/* Base Category Item */
+.category-item {
+    position: relative; /* Crucial for absolute dropdown positioning */
+}
+
+/* The clickable link inside */
+.category-link {
+    color: var(--text-dark);
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    padding: 18px 25px; /* Taller padding for better hit area */
+    transition: all 0.3s ease;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    position: relative;
+}
+
+/* Active/Hover effect on link */
+.category-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 3px;
+    background: var(--brand-color);
+    transition: width 0.3s ease;
+}
+
+.category-item:hover .category-link::after {
+    width: 100%;
+}
+
+.category-link:hover {
+    color: var(--brand-color);
+    background: transparent; /* Remove old background hover */
+}
+
+/* The Hidden Dropdown Box */
+.mega-dropdown {
+    position: absolute;
+    top: 100%; /* Just below the navbar */
+    left: 50%;
+    transform: translateX(-50%) translateY(15px); /* Start slightly below */
+    background: var(--bg-card);
+    min-width: 220px;
+    border-radius: 8px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    border: 1px solid var(--border-color);
+    border-top: 3px solid var(--brand-color);
+    padding: 10px 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Show Dropdown on Hover */
+.category-item:hover .mega-dropdown {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0); /* Slide up smoothly */
+}
+
+/* Items inside the Dropdown */
+.dropdown-sub-link {
+    padding: 12px 20px;
+    color: var(--text-dark);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.2s, padding-left 0.2s;
+    display: block;
+    border-bottom: 1px solid var(--border-color);
+}
+.dropdown-sub-link:last-child {
+    border-bottom: none;
+}
+
+.dropdown-sub-link:hover {
+    background: var(--bg-light-grey);
+    color: var(--brand-color);
+    padding-left: 25px; /* Slight indent animation on hover */
+}
+
+/* Mobile Adjustments for Menu */
+@media (max-width: 768px) {
+    .about-bar { display: none; } /* Hide about bar on very small screens to save space */
+    
+    .category-nav-bar {
+        overflow-x: auto;
+        padding: 5px 0;
+    }
+    
+    #dynamic-category-menu {
+        justify-content: flex-start;
+        padding: 0 10px;
+        gap: 10px;
+    }
+    
+    .category-link {
+        padding: 8px 15px;
+        background: var(--bg-light-grey);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+    
+    .category-link::after { display: none; } /* Remove bottom line on mobile */
+    
+    /* Disable hover dropdowns on touch devices (they act as direct links) */
+    .mega-dropdown { display: none !important; }
+}
+
+/* Dark Mode fixes for Dropdown Menu */
+body.dark-theme .mega-dropdown { background: #1e1e1e; border-color: #444; }
+body.dark-theme .dropdown-sub-link { color: #f1f1f1; border-color: #333; }
+body.dark-theme .dropdown-sub-link:hover { background: #111; color: var(--brand-color); }
+body.dark-theme .about-bar { background: #111; color: #aaa; }
+
+/* ⭐ NEW: WALLET BUTTON STYLES (Tap for Balance) */
+.wallet-btn-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: var(--bg-card);
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: 0.3s;
+}
+
+.wallet-btn-container:hover {
+    border-color: var(--brand-color);
+    box-shadow: 0 4px 8px rgba(217, 125, 0, 0.15);
+}
+
+.wallet-amount-text {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--brand-color);
+    transition: 0.3s;
+}
+
+.wallet-sub-text {
+    font-size: 9px;
+    font-weight: 600;
+    color: gray;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+}
+
+/* Dark mode fix for wallet button */
+body.dark-theme .wallet-btn-container { background: #1e1e1e; border-color: #444; }
