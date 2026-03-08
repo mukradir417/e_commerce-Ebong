@@ -439,6 +439,12 @@
                     <div class="form-group"><label>Regular Price (Tk)</label><input type="number" id="p_price" class="form-control" required></div>
                     <div class="form-group"><label>Discount Price (Tk) [Leave 0 if no discount]</label><input type="number" id="p_discount" class="form-control" value="0"></div>
                     
+                    <div class="form-group" style="background: #e6f2ff; padding: 10px; border-radius: 8px; border: 1px dashed #007bff; margin-top: 10px;">
+                        <label style="color: #0056b3; font-size: 13px;">🎁 Cashback Amount (Optional)</label>
+                        <p style="font-size: 11px; margin: 0 0 5px 0; color: gray;">কত টাকা বা পার্সেন্ট ক্যাশব্যাক দেবেন (যেমন: 50 বা 5%)</p>
+                        <input type="text" id="p_cashback" class="form-control" placeholder="e.g., 50 or 5%" value="0">
+                    </div>
+                    
                     <div class="form-group" style="background: #fff8e1; padding: 15px; border-radius: 8px; border: 1px solid #ffe082;">
                         <label style="color: #d84315; margin-bottom: 10px;">📏 Available Sizes & Stock (যে সাইজ নেই সেখানে 0 রাখুন)</label>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 10px;">
@@ -803,6 +809,11 @@
                                 <option value="Accessories">Accessories</option>
                             </select>
                         </div>
+                    </div>
+                    
+                    <div class="form-group" style="background: #e6f2ff; padding: 10px; border-radius: 8px; border: 1px dashed #007bff; margin-bottom: 15px;">
+                        <label style="color: #0056b3; font-size: 13px;">🎁 Cashback Amount (Tk or %)</label>
+                        <input type="text" id="edit_p_cashback" class="form-control" placeholder="e.g., 50 or 5%">
                     </div>
 
                     <div class="form-group" style="background: #fff8e1; padding: 15px; border-radius: 8px; border: 1px solid #ffe082;">

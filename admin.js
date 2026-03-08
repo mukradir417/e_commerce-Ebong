@@ -653,7 +653,7 @@ window.printInvoice = async function(orderData, trackingId) {
 }
 
 
-// ⭐ UPDATED: MULTI-STEP STATUS UPDATE WITH NOTE, STOCK DEDUCTION & RESTORE
+// ⭐ UPDATED: MULTI-STEP STATUS UPDATE WITH NOTE, STOCK DEDUCTION, RESTORE & AUTO CASHBACK
 window.updateOrderStatus = async function(dbId, trackingId, oldStatus) {
     const statusSelect = document.getElementById(`status_select_${dbId}`);
     const paySelect = document.getElementById(`status_pay_${dbId}`);
@@ -730,6 +730,53 @@ window.updateOrderStatus = async function(dbId, trackingId, oldStatus) {
                 }
             }
 
+            // ⭐ AUTO CASHBACK LOGIC (When Delivered)
+            if (newStatus === "Delivered" && oldStatus !== "Delivered" && orderData.customerId && !orderData.cashbackGiven) {
+                let totalCashback = 0;
+                
+                // Calculate cashback
+                for (let item of orderData.items) {
+                    if (item.productId) {
+                        const pRef = doc(db, "products", item.productId);
+                        const pSnap = await getDoc(pRef);
+                        if (pSnap.exists()) {
+                            let pData = pSnap.data();
+                            if (pData.cashback && pData.cashback !== "0" && pData.cashback !== "") {
+                                if (pData.cashback.includes('%')) {
+                                    let percentage = parseFloat(pData.cashback.replace('%',''));
+                                    if(!isNaN(percentage)) {
+                                        totalCashback += Math.round((item.price * item.qty) * (percentage / 100));
+                                    }
+                                } else {
+                                    let fixedAmt = parseFloat(pData.cashback);
+                                    if(!isNaN(fixedAmt)) totalCashback += (fixedAmt * item.qty);
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Add to wallet if cashback exists
+                if (totalCashback > 0) {
+                    const cRef = doc(db, "customers", orderData.customerId);
+                    const cSnap = await getDoc(cRef);
+                    if (cSnap.exists()) {
+                        let currentBalance = cSnap.data().walletBalance || 0;
+                        await updateDoc(cRef, { walletBalance: currentBalance + totalCashback });
+                        
+                        await addDoc(collection(db, "customers", orderData.customerId, "wallet_history"), {
+                            type: "Cashback Received", amount: totalCashback, status: "Completed", timestamp: new Date().getTime(), date: new Date().toLocaleString()
+                        });
+                        
+                        await addDoc(collection(db, "customers", orderData.customerId, "notifications"), {
+                            text: `🎉 Congratulations! Tk ${totalCashback} cashback added to your wallet for Order #${trackingId}.`, timestamp: new Date().getTime(), isRead: false
+                        });
+                        
+                        await updateDoc(orderRef, { cashbackGiven: true, cashbackAmount: totalCashback });
+                    }
+                }
+            }
+
             let updateData = { 
                 status: newStatus,
                 confirmedBy: adminName,
@@ -755,7 +802,7 @@ window.updateOrderStatus = async function(dbId, trackingId, oldStatus) {
             
             // Success messages based on action
             if(newStatus === "Delivered") {
-                alert(`✅ Order ${trackingId} is now marked as DELIVERED! Revenue Updated.`);
+                alert(`✅ Order ${trackingId} is now marked as DELIVERED! Revenue and Cashback Updated.`);
             } else if(newStatus === "Failed" || newStatus === "Returned") {
                 alert(`🔄 Order ${newStatus}! Stock has been successfully RESTORED.`);
             } else {
@@ -1249,6 +1296,7 @@ window.openAdvancedEditProduct = async function(productId) {
     document.getElementById('edit_p_code').value = pData.code || '';
     document.getElementById('edit_p_price').value = pData.price || 0;
     document.getElementById('edit_p_discount').value = pData.discountPrice || 0;
+    if(document.getElementById('edit_p_cashback')) document.getElementById('edit_p_cashback').value = pData.cashback || "0";
     
     const catSelect = document.getElementById('edit_p_category');
     if(catSelect) catSelect.value = pData.category || 'women clothes';
@@ -1340,6 +1388,7 @@ if(editProductForm) {
                 category: document.getElementById('edit_p_category').value,
                 price: Number(document.getElementById('edit_p_price').value),
                 discountPrice: Number(document.getElementById('edit_p_discount').value),
+                cashback: document.getElementById('edit_p_cashback') ? document.getElementById('edit_p_cashback').value.trim() : "0",
                 
                 stock: totalStockCalculated,
                 sizes: sizesObj,
@@ -1414,6 +1463,7 @@ if(addProductForm) {
                 category: document.getElementById('p_category').value,
                 price: Number(document.getElementById('p_price').value),
                 discountPrice: Number(document.getElementById('p_discount').value),
+                cashback: document.getElementById('p_cashback') ? document.getElementById('p_cashback').value.trim() : "0",
                 
                 stock: totalStockCalculated, 
                 sizes: sizesObj, 
