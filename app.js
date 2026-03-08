@@ -135,6 +135,7 @@ onAuthStateChanged(auth, async (user) => {
                 if(dashBal) dashBal.innerText = window.currentWalletBalance;
                 
                 updateHeaderSpinBadge();
+                if(typeof window.updateCartUI === 'function') window.updateCartUI(); // Update UI in case balance changes while checkout modal is open
             }
         });
 
@@ -177,6 +178,8 @@ onAuthStateChanged(auth, async (user) => {
             btn.classList.remove('active');
             btn.innerHTML = '🤍';
         });
+        
+        if(typeof window.updateCartUI === 'function') window.updateCartUI(); // Update UI to hide wallet checkout option
     }
 });
 
@@ -274,7 +277,7 @@ const directLogoutBtn = document.getElementById('direct-logout-btn');
 if(directLogoutBtn) directLogoutBtn.addEventListener('click', performLogout);
 
 // ==========================================
-// ⭐ NEW: WALLET PIN SECURITY LOGIC
+// ⭐ WALLET PIN SECURITY LOGIC (FIXED)
 // ==========================================
 
 const manageWalletBtn = document.getElementById('manage-wallet-btn');
@@ -298,7 +301,7 @@ if(manageWalletBtn) {
     });
 }
 
-// Function to save new PIN
+// Function to save new PIN (Fixed updateDoc error by using setDoc with merge)
 window.saveNewPin = async function() {
     const pin1 = document.getElementById('set1').value;
     const pin2 = document.getElementById('set2').value;
@@ -313,21 +316,27 @@ window.saveNewPin = async function() {
     }
 
     try {
-        await updateDoc(doc(db, "customers", currentCustomer.uid), {
+        await setDoc(doc(db, "customers", currentCustomer.uid), {
             walletPin: fullPin
-        });
+        }, { merge: true });
         
         window.customerWalletPin = fullPin; // update locally
         
         alert("✅ Wallet PIN set successfully! Keep it secret.");
         document.getElementById('set-pin-modal').style.display = 'none';
         
+        // Clear inputs
+        document.getElementById('set1').value = '';
+        document.getElementById('set2').value = '';
+        document.getElementById('set3').value = '';
+        document.getElementById('set4').value = '';
+
         // Open the actual wallet now
         document.getElementById('wallet-modal').style.display = 'block';
         
     } catch (e) {
-        console.error(e);
-        alert("Error saving PIN. Try again.");
+        console.error("PIN Save Error: ", e);
+        alert("Error saving PIN: " + e.message);
     }
 }
 
@@ -361,7 +370,7 @@ window.verifyEnteredPin = function() {
 }
 
 // ==========================================
-// ⭐ NEW: DEPOSIT, WITHDRAW & HISTORY LOGIC
+// ⭐ DEPOSIT, WITHDRAW & HISTORY LOGIC
 // ==========================================
 
 const depositForm = document.getElementById('deposit-form');
@@ -494,11 +503,11 @@ function loadWalletHistory() {
             let color = "gray";
             let amountPrefix = "";
 
-            if (item.type.includes("Deposit") || item.type.includes("Cashback") || item.type.includes("Bonus") || item.type.includes("Added")) {
+            if (item.type.includes("Deposit") || item.type.includes("Cashback") || item.type.includes("Bonus") || item.type.includes("Added") || item.type.includes("Refund")) {
                 icon = "🟢";
                 color = "green";
                 amountPrefix = "+";
-            } else if (item.type.includes("Withdraw") || item.type.includes("Spend") || item.type.includes("Deducted")) {
+            } else if (item.type.includes("Withdraw") || item.type.includes("Spend") || item.type.includes("Deducted") || item.type.includes("Payment")) {
                 icon = "🔴";
                 color = "red";
                 amountPrefix = "-";
@@ -539,7 +548,7 @@ window.checkAndOpenUserModal = function() {
 }
 
 // ==========================================
-// ⭐ NEW: WISHLIST LOGIC (Toggle Empty/Solid Heart)
+// ⭐ WISHLIST LOGIC (Toggle Empty/Solid Heart)
 // ==========================================
 window.toggleWishlist = async function(event, productId) {
     event.stopPropagation(); // Prevents opening product details modal
@@ -693,7 +702,7 @@ async function loadCustomerOrderHistory() {
     }
 }
 
-// ⭐ Load Customer Addresses (For Profile & Checkout)
+// Load Customer Addresses (For Profile & Checkout)
 function loadCustomerAddresses() {
     if(!currentCustomer) return;
 
@@ -810,12 +819,12 @@ window.deleteAddress = async function(addrId) {
 
 
 // ==========================================
-// ⭐ NEW: BELL NOTIFICATION SYSTEM LOGIC
+// ⭐ BELL NOTIFICATION SYSTEM LOGIC (DUPLICATE BUG FIXED)
 // ==========================================
 function listenForAdminNotifications() {
     if(!currentCustomer) return;
 
-    // 1. Listen for the immediate string trigger from admin
+    // 1. Listen for the immediate string trigger from admin (ONLY SHOW POPUP)
     onSnapshot(doc(db, "customers", currentCustomer.uid), async (docSnap) => {
         if(docSnap.exists()) {
             const data = docSnap.data();
@@ -829,17 +838,11 @@ function listenForAdminNotifications() {
                 if(pop && text) {
                     text.innerText = msg;
                     pop.style.display = 'block';
-                    setTimeout(() => { pop.style.display = 'none'; }, 15000);
+                    setTimeout(() => { pop.style.display = 'none'; }, 10000);
                 }
 
-                // Move to Subcollection to save history
-                await addDoc(collection(db, "customers", currentCustomer.uid, "notifications"), {
-                    text: msg,
-                    timestamp: new Date().getTime(),
-                    isRead: false
-                });
-
-                // Clear the trigger string
+                // ⭐ FIX: Removed the addDoc from here to prevent duplicate entries
+                // Just clear the trigger string so the popup doesn't keep showing
                 await updateDoc(doc(db, "customers", currentCustomer.uid), { adminNotification: "" });
             }
         }
@@ -1135,7 +1138,7 @@ async function loadProducts() {
                     actualPriceToCart = discountPrice;
                 }
 
-                // ⭐ NEW: Add Cashback Badge Logic
+                // ⭐ Add Cashback Badge Logic
                 let cashbackHtml = '';
                 if(product.cashback && product.cashback !== "0" && product.cashback !== "") {
                     let cText = product.cashback.includes('%') ? product.cashback : `৳ ${product.cashback}`;
@@ -1481,7 +1484,8 @@ if(closeDetailsBtn) {
     }
 }
 
-function updateCartUI() {
+// ⭐ UPDATED: CART UI WITH WALLET LOGIC
+window.updateCartUI = function() {
     const cartList = document.getElementById("cart-items-list");
     let subtotal = 0, totalItems = 0;
     
@@ -1500,7 +1504,6 @@ function updateCartUI() {
             cartList.innerHTML = cart.map((item, i) => {
                 let itemTotal = item.price * item.qty;
                 subtotal += itemTotal; totalItems += item.qty;
-                // ⭐ FIX: Removed hardcoded background and border
                 return `<div class="cart-item-row" style="border-bottom: 1px solid var(--border-color); padding: 10px 0; display: flex; justify-content: space-between; align-items: center; color: var(--text-dark);">
                     <div class="cart-item-info">
                         <strong>${item.name}</strong> <br>
@@ -1595,15 +1598,53 @@ function updateCartUI() {
         }
     }
 
-    let grandTotal = subtotal + deliveryCharge - promoDiscountAmount - spinDiscountAmount;
-    if(grandTotal < 0) grandTotal = 0; 
+    let tempGrandTotal = subtotal + deliveryCharge - promoDiscountAmount - spinDiscountAmount;
+    if(tempGrandTotal < 0) tempGrandTotal = 0; 
+
+    // ⭐ STEP 3: WALLET PAYMENT LOGIC
+    let walletArea = document.getElementById('checkout-wallet-area');
+    let walletBalDisplay = document.getElementById('checkout-wallet-bal');
+    let walletRedeemInput = document.getElementById('wallet_redeem_amount');
+    let useWalletCheck = document.getElementById('use_wallet_checkbox');
+    
+    let walletRedeemAmount = 0;
+
+    // Show or hide wallet options based on login status and balance
+    if (currentCustomer && window.currentWalletBalance > 0 && subtotal > 0) {
+        if(walletArea) walletArea.style.display = 'block';
+        if(walletBalDisplay) walletBalDisplay.innerText = window.currentWalletBalance;
+        
+        if (useWalletCheck && useWalletCheck.checked) {
+            let reqAmount = parseInt(walletRedeemInput.value) || 0;
+            // Prevent entering more than bill or balance
+            if (reqAmount > window.currentWalletBalance) {
+                reqAmount = window.currentWalletBalance;
+                if(walletRedeemInput) walletRedeemInput.value = reqAmount;
+            }
+            if (reqAmount > tempGrandTotal) {
+                reqAmount = tempGrandTotal;
+                if(walletRedeemInput) walletRedeemInput.value = reqAmount;
+            }
+            walletRedeemAmount = reqAmount;
+        }
+    } else {
+        if(walletArea) walletArea.style.display = 'none';
+        if(useWalletCheck) useWalletCheck.checked = false;
+        if(walletRedeemInput) walletRedeemInput.value = '';
+        walletRedeemAmount = 0;
+        const redeemBox = document.getElementById('wallet-redeem-box');
+        if(redeemBox) redeemBox.style.display = 'none';
+    }
+
+    let finalTotal = tempGrandTotal - walletRedeemAmount;
     
     if(document.getElementById('cart-total')) {
         let discountHtml = '';
         if(promoDiscountAmount > 0) discountHtml += `<br><small style="color:green; font-size:12px;">(Promo: -Tk ${promoDiscountAmount})</small>`;
         if(spinDiscountAmount > 0) discountHtml += `<br><small style="color:var(--brand-color); font-size:12px;">(Spin Bonus: -Tk ${spinDiscountAmount})</small>`;
+        if(walletRedeemAmount > 0) discountHtml += `<br><small style="color:blue; font-size:12px;">(Wallet Paid: -Tk ${walletRedeemAmount})</small>`;
         
-        document.getElementById('cart-total').innerHTML = `${grandTotal} ${discountHtml}`;
+        document.getElementById('cart-total').innerHTML = `${finalTotal} ${discountHtml}`;
     }
 }
 
@@ -1706,7 +1747,6 @@ const startSpinBtn = document.getElementById('start-spin-btn');
 const wheelCircle = document.getElementById('spin-wheel-circle');
 const spinMsg = document.getElementById('spin_result_msg');
 
-// ⭐ UPDATE: Open gamified spin wheel from header
 const headerSpinBtnClick = document.getElementById('header-spin-btn');
 if(headerSpinBtnClick && spinModal) {
     headerSpinBtnClick.onclick = () => {
@@ -1778,15 +1818,37 @@ if(startSpinBtn) {
 }
 
 // ==========================================
-// ⭐ NEW: ORDER SUBMISSION & TRACKING ID GEN
+// ⭐ UPDATED: ORDER SUBMISSION WITH WALLET PIN VERIFICATION
 // ==========================================
 const orderForm = document.getElementById('order-form');
 if(orderForm) {
     orderForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         if(cart.length === 0) return alert("Add products first.");
+        
         const btn = e.target.querySelector('button'); 
         if(btn) { btn.innerText = "Processing..."; btn.disabled = true; }
+        
+        // ⭐ Check Wallet Redemption details
+        let walletRedeemAmount = 0;
+        const useWalletCheck = document.getElementById('use_wallet_checkbox');
+        if (useWalletCheck && useWalletCheck.checked) {
+            walletRedeemAmount = parseInt(document.getElementById('wallet_redeem_amount').value) || 0;
+            const enteredPin = document.getElementById('wallet_redeem_pin').value;
+            
+            if (walletRedeemAmount > 0) {
+                if (!window.customerWalletPin) {
+                    alert("You haven't set a Wallet PIN yet. Please go to 'Manage Wallet' to set it up first.");
+                    if(btn) { btn.innerText = "Confirm Order"; btn.disabled = false; }
+                    return;
+                }
+                if (enteredPin !== window.customerWalletPin) {
+                    alert("❌ Incorrect Wallet PIN. Please try again.");
+                    if(btn) { btn.innerText = "Confirm Order"; btn.disabled = false; }
+                    return;
+                }
+            }
+        }
         
         let subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
         let deliverySelect = document.getElementById('delivery_zone');
@@ -1805,16 +1867,18 @@ if(orderForm) {
         
         let grandTotal = subtotal + deliveryCharge - promoDiscountAmount - spinDiscountAmount;
         if(grandTotal < 0) grandTotal = 0;
+        
+        let finalToPay = grandTotal - walletRedeemAmount;
+        if(finalToPay < 0) finalToPay = 0;
 
         let trxElement = document.getElementById('c_trxid');
         let phoneInput = document.getElementById('c_phone').value.trim();
 
-        // Generate Tracking ID (Last 5 digits + logic for duplicates)
+        // Generate Tracking ID
         let baseTrackingId = phoneInput.length >= 5 ? phoneInput.slice(-5) : Math.floor(10000 + Math.random() * 90000).toString();
         let finalTrackingId = baseTrackingId;
         
         try {
-            // Check if tracking ID already exists and append A, B, C...
             const q = query(collection(db, "orders"), where("trackingIdBase", "==", baseTrackingId));
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
@@ -1825,8 +1889,8 @@ if(orderForm) {
             }
 
             let orderData = {
-                trackingId: finalTrackingId, // ⭐ NEW
-                trackingIdBase: baseTrackingId, // ⭐ NEW
+                trackingId: finalTrackingId,
+                trackingIdBase: baseTrackingId,
                 customerName: document.getElementById('c_name').value,
                 phone: phoneInput,
                 address: document.getElementById('c_address').value,
@@ -1836,8 +1900,9 @@ if(orderForm) {
                 promoCodeApplied: appliedPromoCode || "None", 
                 discountReceived: promoDiscountAmount + spinDiscountAmount, 
                 spinPrize: spinResultText || "None",
-                deliveryCharge: deliveryCharge, // For PDF
-                totalAmount: grandTotal, 
+                walletUsedAmount: walletRedeemAmount, // ⭐ Save Wallet Usage
+                deliveryCharge: deliveryCharge, 
+                totalAmount: finalToPay, // ⭐ Final amount after wallet deduction
                 status: "Pending",
                 date: new Date().toLocaleString(),
                 stockDeducted: false 
@@ -1847,18 +1912,35 @@ if(orderForm) {
                 orderData.customerId = currentCustomer.uid;
             }
 
-            const newOrderRef = await addDoc(collection(db, "orders"), orderData);
+            // Save Order
+            await addDoc(collection(db, "orders"), orderData);
             
-            // ⭐ Show Success Modal with Tracking ID
+            // ⭐ DEDUCT WALLET BALANCE & SAVE HISTORY
+            if (walletRedeemAmount > 0 && currentCustomer) {
+                const newBalance = window.currentWalletBalance - walletRedeemAmount;
+                await updateDoc(doc(db, "customers", currentCustomer.uid), {
+                    walletBalance: newBalance
+                });
+                
+                await addDoc(collection(db, "customers", currentCustomer.uid, "wallet_history"), {
+                    type: "Payment for Order",
+                    amount: walletRedeemAmount,
+                    status: "Completed",
+                    timestamp: new Date().getTime(),
+                    date: new Date().toLocaleString()
+                });
+            }
+            
+            // ⭐ Show Success Modal
             document.getElementById('checkout-modal').style.display = 'none';
             const successModal = document.getElementById('success-modal');
             document.getElementById('success-tracking-id').innerText = finalTrackingId;
             successModal.style.display = 'block';
 
-            // Prepare PDF Template Data (Hidden)
+            // Prepare PDF
             preparePDFInvoice(orderData, finalTrackingId);
 
-            // Reset Everything
+            // Reset
             cart = []; 
             promoDiscountAmount = 0; 
             appliedPromoCode = ""; 
@@ -1869,6 +1951,11 @@ if(orderForm) {
             if(document.getElementById('promo_input')) document.getElementById('promo_input').value = "";
             if(document.getElementById('promo_msg')) document.getElementById('promo_msg').innerText = "";
             if(spinMsg) spinMsg.innerText = "";
+            
+            if(document.getElementById('use_wallet_checkbox')) document.getElementById('use_wallet_checkbox').checked = false;
+            if(document.getElementById('wallet_redeem_amount')) document.getElementById('wallet_redeem_amount').value = '';
+            if(document.getElementById('wallet_redeem_pin')) document.getElementById('wallet_redeem_pin').value = '';
+            if(document.getElementById('wallet-redeem-box')) document.getElementById('wallet-redeem-box').style.display = 'none';
             
             updateCartUI(); 
             document.getElementById('order-form').reset();
@@ -1886,10 +1973,9 @@ if(orderForm) {
     });
 }
 
-// ==========================================
-// ⭐ NEW: IMAGE INVOICE GENERATOR LOGIC (SCROLL ISSUE FIXED)
-// ==========================================
 function preparePDFInvoice(order, trackingId) {
+    let domainName = 'ebong.com'; // Fallback
+    
     document.getElementById('pdf-tracking-id').innerText = trackingId;
     document.getElementById('pdf-date').innerText = order.date;
     document.getElementById('pdf-name').innerText = order.customerName;
@@ -1916,46 +2002,51 @@ function preparePDFInvoice(order, trackingId) {
     if(order.spinPrize && order.spinPrize !== "None") document.getElementById('pdf-spin').innerText = `Spin Prize: ${order.spinPrize}`;
     else document.getElementById('pdf-spin').innerText = '';
 
+    // ⭐ Show Wallet Deduction in PDF
+    if(order.walletUsedAmount && order.walletUsedAmount > 0) {
+        let pdfWalletUsed = document.getElementById('pdf-wallet-used');
+        if(pdfWalletUsed) pdfWalletUsed.innerText = `Wallet Paid: -Tk ${order.walletUsedAmount}`;
+    } else {
+        let pdfWalletUsed = document.getElementById('pdf-wallet-used');
+        if(pdfWalletUsed) pdfWalletUsed.innerText = '';
+    }
+
     document.getElementById('pdf-delivery').innerText = order.deliveryCharge || 0;
     document.getElementById('pdf-total').innerText = order.totalAmount;
     document.getElementById('pdf-method').innerText = order.paymentMethod;
     
     const isPaid = order.paymentMethod !== "COD";
-    document.getElementById('pdf-status').innerHTML = isPaid ? "<span style='color:green'>PAID</span>" : "<span style='color:red'>DUE ON DELIVERY</span>";
+    document.getElementById('pdf-status').innerHTML = isPaid ? "<span style='color:green'>PAID VIA GATEWAY</span>" : "<span style='color:red'>DUE ON DELIVERY</span>";
 }
 
-// ⭐ FIX: PERFECT SCREENSHOT FOR MOBILE AND DESKTOP
 window.downloadCustomerInvoicePicture = function() {
     const element = document.getElementById('invoice-template');
     const parent = element.parentElement;
     
-    // Bring invoice to top to avoid scroll blank space issues but keep it hidden
     parent.style.display = 'block'; 
     parent.style.position = 'fixed'; 
     parent.style.top = '0';
     parent.style.left = '0';
-    parent.style.zIndex = '99999'; // Bring it completely to the front
-    parent.style.opacity = '1'; // Must be 1 to capture image properly
+    parent.style.zIndex = '99999'; 
+    parent.style.opacity = '1'; 
     
     element.style.fontFamily = "Arial, sans-serif"; 
     
     const trackingId = document.getElementById('pdf-tracking-id').innerText;
 
-    // Small delay to ensure mobile browser paints the UI
     setTimeout(() => {
         html2canvas(element, { 
             scale: 2, 
             useCORS: true,
             windowWidth: element.scrollWidth,
             windowHeight: element.scrollHeight,
-            scrollY: -window.scrollY // ⭐ ABSOLUTE FIX FOR SCROLL OFFSET
+            scrollY: -window.scrollY 
         }).then(canvas => {
             let link = document.createElement('a');
             link.download = `eBong_Invoice_${trackingId}.png`;
             link.href = canvas.toDataURL("image/png");
             link.click();
             
-            // Hide again
             parent.style.display = 'none'; 
             parent.style.position = 'static';
             parent.style.zIndex = 'auto';
@@ -1969,7 +2060,7 @@ window.downloadCustomerInvoicePicture = function() {
 
 
 // ==========================================
-// ⭐ NEW: LIVE ORDER TRACKING LOGIC
+// ⭐ LIVE ORDER TRACKING LOGIC
 // ==========================================
 window.trackOrder = async function() {
     const input = document.getElementById('track-id-input').value.trim().toUpperCase();
@@ -1982,7 +2073,6 @@ window.trackOrder = async function() {
         let q = query(collection(db, "orders"), where("trackingId", "==", input));
         let querySnapshot = await getDocs(q);
 
-        // Fallback: Check if they just entered the base 5 digits and want the latest one
         if (querySnapshot.empty && input.length === 5) {
             q = query(collection(db, "orders"), where("trackingIdBase", "==", input));
             querySnapshot = await getDocs(q);
@@ -1995,7 +2085,6 @@ window.trackOrder = async function() {
             alert("No active order found with this ID.");
             resultBox.style.display = 'none';
         } else {
-            // Get the most recent order if multiple exist for the base ID
             let orders = [];
             querySnapshot.forEach(doc => orders.push({ id: doc.id, ...doc.data() }));
             orders.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -2010,7 +2099,6 @@ window.trackOrder = async function() {
             document.getElementById('t-id').innerText = order.trackingId || order.id.substring(0,6);
             document.getElementById('t-status-badge').innerText = order.status;
 
-            // Set badge color based on status
             const badge = document.getElementById('t-status-badge');
             if(order.status === "Pending") badge.style.background = "orange";
             if(order.status === "Confirmed") badge.style.background = "#007bff";
@@ -2019,10 +2107,9 @@ window.trackOrder = async function() {
             if(order.status === "Out for Delivery") badge.style.background = "#e83e8c";
             if(order.status === "Delivered") badge.style.background = "#28a745";
 
-            // Build Timeline
             const steps = ["Pending", "Confirmed", "Processing", "Shipped", "Out for Delivery", "Delivered"];
             let currentStepIdx = steps.indexOf(order.status);
-            if(currentStepIdx === -1) currentStepIdx = 0; // Default
+            if(currentStepIdx === -1) currentStepIdx = 0; 
 
             let html = '';
             steps.forEach((step, idx) => {
@@ -2039,7 +2126,6 @@ window.trackOrder = async function() {
                     dateTxt = 'Pending...';
                 }
 
-                // Attach Admin Note to the current active step
                 let noteHtml = '';
                 if (idx === currentStepIdx && order.adminNote) {
                     noteHtml = `<div style="margin-top: 5px; background: var(--bg-light-grey); padding: 5px 10px; border-radius: 5px; border: 1px dashed var(--brand-color); font-size: 11px; color: var(--brand-color);">📝 Note: ${order.adminNote}</div>`;
@@ -2136,7 +2222,7 @@ if(reviewForm) {
 
 
 // ==========================================
-// 💬 NEW: LIVE CHAT SYSTEM
+// 💬 LIVE CHAT SYSTEM
 // ==========================================
 let sessionId = localStorage.getItem('ebong_chat_session');
 let chatListenerUnsubscribe = null;
