@@ -742,7 +742,24 @@
                 </div>
 
                 <textarea id="c_address" placeholder="সম্পূর্ণ ডেলিভারি ঠিকানা (Full Address)" class="form-control" required style="height: 80px;"></textarea>
-                
+                <div id="checkout-wallet-area" style="display: none; background: #e6f2ff; padding: 15px; border-radius: 12px; border: 1px dashed #0056b3; margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <label style="margin: 0; color: #0056b3; font-size: 15px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="use_wallet_checkbox" onchange="toggleWalletRedeem()" style="width: 18px; height: 18px; cursor: pointer;">
+                            💳 Pay from Wallet
+                        </label>
+                        <strong style="color: #28a745; font-size: 13px;">Balance: Tk <span id="checkout-wallet-bal">0</span></strong>
+                    </div>
+                    
+                    <div id="wallet-redeem-box" style="display: none; margin-top: 15px; border-top: 1px solid #b3d4ff; padding-top: 15px;">
+                        <input type="number" id="wallet_redeem_amount" class="form-control" placeholder="Enter amount to use (Optional)" min="1" style="margin-bottom: 10px;">
+                        
+                        <div id="wallet-pin-container" style="display: none;">
+                            <input type="password" id="wallet_redeem_pin" class="form-control" placeholder="Enter 4-Digit Wallet PIN" maxlength="4" style="margin: 0; text-align: center; font-size: 18px; letter-spacing: 5px;">
+                            <p style="font-size: 11px; color: #dc3545; font-weight: bold; margin: 5px 0 0 0;">* Security PIN required to use wallet balance.</p>
+                        </div>
+                    </div>
+                </div>
                 <div style="margin: 15px 0; background: var(--bg-light-grey); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
                     <p style="margin: 0 0 10px 0; font-weight: 700; font-size: 15px;">Payment Method:</p>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
@@ -1290,7 +1307,44 @@
 
             document.getElementById('withdraw-modal').style.display = 'block';
         }
+        // ⭐ NEW: Handle Wallet input dynamically inside the checkout form
+        const walletRedeemAmountInput = document.getElementById('wallet_redeem_amount');
+        if(walletRedeemAmountInput) {
+            walletRedeemAmountInput.addEventListener('input', function() {
+                const pinContainer = document.getElementById('wallet-pin-container');
+                const amount = parseInt(this.value) || 0;
+                
+                if (amount > 0) {
+                    pinContainer.style.display = 'block';
+                    document.getElementById('wallet_redeem_pin').required = true;
+                } else {
+                    pinContainer.style.display = 'none';
+                    document.getElementById('wallet_redeem_pin').required = false;
+                    document.getElementById('wallet_redeem_pin').value = '';
+                }
+                if(typeof window.updateCartUI === 'function') window.updateCartUI(); 
+            });
+        }
 
+        // ⭐ NEW: Toggle Wallet Box via checkbox
+        window.toggleWalletRedeem = function() {
+            const checkbox = document.getElementById('use_wallet_checkbox');
+            const redeemBox = document.getElementById('wallet-redeem-box');
+            const amountInput = document.getElementById('wallet_redeem_amount');
+            const pinContainer = document.getElementById('wallet-pin-container');
+            
+            if (checkbox && checkbox.checked) {
+                redeemBox.style.display = 'block';
+                setTimeout(() => amountInput.focus(), 100);
+            } else {
+                redeemBox.style.display = 'none';
+                pinContainer.style.display = 'none';
+                amountInput.value = '';
+                const pinInput = document.getElementById('wallet_redeem_pin');
+                if(pinInput) { pinInput.value = ''; pinInput.required = false; }
+            }
+            if(typeof window.updateCartUI === 'function') window.updateCartUI(); 
+        }
     </script>
 </body>
 </html>
