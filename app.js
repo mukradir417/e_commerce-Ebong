@@ -2278,7 +2278,8 @@ function initCustomerChat() {
                 
                 chatData.messages.forEach(msg => {
                     const isUser = msg.sender === 'user';
-                    const bubbleClass = isUser ? 'msg-user' : 'msg-admin';
+                    // ⭐ FIX: Changed class names so admin and user messages align perfectly
+                    const bubbleClass = isUser ? 'msg-customer' : 'msg-admin';
                     
                     let timeStr = "";
                     if(msg.timestamp) {
@@ -2288,14 +2289,14 @@ function initCustomerChat() {
 
                     let senderNameHtml = '';
                     if(!isUser && msg.adminName) {
-                        senderNameHtml = `<strong style="font-size:11px; display:block; margin-bottom:3px; color:var(--text-dark);">Support: ${msg.adminName}</strong>`;
+                        senderNameHtml = `<strong style="font-size:11px; display:block; margin-bottom:3px; color:#d1e8ff;">Support: ${msg.adminName}</strong>`;
                     }
 
                     msgsHtml += `
-                        <div class="chat-msg ${bubbleClass}">
+                        <div class="msg-bubble ${bubbleClass}">
                             ${senderNameHtml}
                             ${msg.text}
-                            <span style="display:block; text-align:right; font-size:9px; margin-top:4px; opacity:0.8;">${timeStr}</span>
+                            <span class="msg-time">${timeStr}</span>
                         </div>
                     `;
                 });
