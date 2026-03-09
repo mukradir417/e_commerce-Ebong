@@ -461,30 +461,31 @@
                     <input type="hidden" id="p_colors" value=""> 
                     <div class="form-group"><label>Short Description</label><textarea id="p_desc" class="form-control" style="height: 60px;"></textarea></div>
                     
-                    <div class="form-group" style="background: #f0f8ff; padding: 15px; border-radius: 8px; border: 1px solid #b3d4ff;">
-                        <label style="color: #0056b3; margin-bottom: 10px;">🎨 Product Images & Colors (ছবির লিংকের পাশে রং লিখুন)</label>
-                        
-                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                            <input type="url" id="img_url_1" class="form-control" placeholder="Main Image URL (Required)" required style="margin: 0; flex: 2;">
-                            <input type="text" id="img_color_1" class="form-control" placeholder="Color Name (e.g., Red)" required style="margin: 0; flex: 1;">
-                        </div>
-
-                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                            <input type="url" id="img_url_2" class="form-control" placeholder="Image URL 2 (Optional)" style="margin: 0; flex: 2;">
-                            <input type="text" id="img_color_2" class="form-control" placeholder="Color Name" style="margin: 0; flex: 1;">
-                        </div>
-
-                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                            <input type="url" id="img_url_3" class="form-control" placeholder="Image URL 3 (Optional)" style="margin: 0; flex: 2;">
-                            <input type="text" id="img_color_3" class="form-control" placeholder="Color Name" style="margin: 0; flex: 1;">
-                        </div>
-
-                        <div style="display: flex; gap: 10px;">
-                            <input type="url" id="img_url_4" class="form-control" placeholder="Image URL 4 (Optional)" style="margin: 0; flex: 2;">
-                            <input type="text" id="img_color_4" class="form-control" placeholder="Color Name" style="margin: 0; flex: 1;">
-                        </div>
-                        <p style="font-size: 11px; color: gray; margin-top: 8px; margin-bottom: 0;">* কাস্টমার কালার সিলেক্ট করলে অটোমেটিক এই ছবিটি দেখাবে।</p>
-                    </div>
+<div class="form-group" style="background: #f0f8ff; padding: 15px; border-radius: 8px; border: 1px solid #b3d4ff;">
+    <label style="color: #0056b3; margin-bottom: 10px;">🎨 Product Images & Colors (Upload OR Paste Link)</label>
+    <p style="font-size: 11px; color: gray; margin-top: 0;">* আপনি পিসি/মোবাইল থেকে সরাসরি ছবি আপলোড করতে পারেন অথবা আগের মতো লিংকও দিতে পারেন।</p>
+    
+    <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+        <input type="file" id="img_file_1" class="form-control" accept="image/*" style="margin: 0; flex: 1;" title="Upload Main Image">
+        <input type="url" id="img_url_1" class="form-control" placeholder="OR Paste URL 1" style="margin: 0; flex: 1;">
+        <input type="text" id="img_color_1" class="form-control" placeholder="Color Name (Required)" required style="margin: 0; flex: 1;">
+    </div>
+    <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+        <input type="file" id="img_file_2" class="form-control" accept="image/*" style="margin: 0; flex: 1;">
+        <input type="url" id="img_url_2" class="form-control" placeholder="OR Paste URL 2" style="margin: 0; flex: 1;">
+        <input type="text" id="img_color_2" class="form-control" placeholder="Color Name" style="margin: 0; flex: 1;">
+    </div>
+    <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+        <input type="file" id="img_file_3" class="form-control" accept="image/*" style="margin: 0; flex: 1;">
+        <input type="url" id="img_url_3" class="form-control" placeholder="OR Paste URL 3" style="margin: 0; flex: 1;">
+        <input type="text" id="img_color_3" class="form-control" placeholder="Color Name" style="margin: 0; flex: 1;">
+    </div>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <input type="file" id="img_file_4" class="form-control" accept="image/*" style="margin: 0; flex: 1;">
+        <input type="url" id="img_url_4" class="form-control" placeholder="OR Paste URL 4" style="margin: 0; flex: 1;">
+        <input type="text" id="img_color_4" class="form-control" placeholder="Color Name" style="margin: 0; flex: 1;">
+    </div>
+</div>
                     
                     <button type="submit" class="btn-submit" id="product-submit-btn">Upload Product</button>
                 </form>
@@ -616,7 +617,7 @@
                 </div>
             </div>
 
-            <div id="siteSettings" class="card">
+           <div id="siteSettings" class="card">
                 <h3>Update Website Look & Contact Info</h3>
                 <form id="settingsForm">
                     
@@ -631,29 +632,44 @@
                         <input type="text" id="s_headline" class="form-control" placeholder="e.g., Mega Sale is live now!">
                     </div>
                     
-                    <h4 style="margin-top: 30px; border-bottom: 1px solid #eee; padding-bottom: 5px; color: #0056b3;">🖼️ Auto-Sliding Banners</h4>
-                    <p style="font-size: 12px; color: gray; margin-bottom: 15px;">মেইন পেইজে অটোমেটিক ব্যানার স্লাইড করার জন্য ছবির লিংক দিন এবং সময় নির্ধারণ করুন।</p>
+                    <h4 style="margin-top: 30px; border-bottom: 1px solid #eee; padding-bottom: 5px; color: #0056b3;">🖼️ Auto-Sliding Banners (Upload OR Link)</h4>
+                    <p style="font-size: 12px; color: gray; margin-bottom: 15px;">মেইন পেইজে অটোমেটিক ব্যানার স্লাইড করার জন্য পিসি/মোবাইল থেকে সরাসরি ছবি আপলোড করুন অথবা লিংকের বক্সে লিংক দিন।</p>
                     
                     <div style="background: #f0f8ff; padding: 15px; border-radius: 8px; border: 1px solid #b3d4ff; margin-bottom: 20px;">
                         <div class="form-group">
-                            <label>Banner Image 1 URL (Required)</label>
-                            <input type="url" id="s_banner_1" class="form-control" placeholder="Primary Banner URL">
+                            <label>Banner Image 1 (Required)</label>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <input type="file" id="s_banner_file_1" class="form-control" accept="image/*" style="margin: 0; flex: 1;" title="Upload Banner 1">
+                                <input type="url" id="s_banner_1" class="form-control" placeholder="OR Paste URL 1" style="margin: 0; flex: 1;">
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label>Banner Image 2 URL (Optional)</label>
-                            <input type="url" id="s_banner_2" class="form-control" placeholder="Banner 2 URL">
+                            <label>Banner Image 2 (Optional)</label>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <input type="file" id="s_banner_file_2" class="form-control" accept="image/*" style="margin: 0; flex: 1;" title="Upload Banner 2">
+                                <input type="url" id="s_banner_2" class="form-control" placeholder="OR Paste URL 2" style="margin: 0; flex: 1;">
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label>Banner Image 3 URL (Optional)</label>
-                            <input type="url" id="s_banner_3" class="form-control" placeholder="Banner 3 URL">
+                            <label>Banner Image 3 (Optional)</label>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <input type="file" id="s_banner_file_3" class="form-control" accept="image/*" style="margin: 0; flex: 1;" title="Upload Banner 3">
+                                <input type="url" id="s_banner_3" class="form-control" placeholder="OR Paste URL 3" style="margin: 0; flex: 1;">
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label>Banner Image 4 URL (Optional)</label>
-                            <input type="url" id="s_banner_4" class="form-control" placeholder="Banner 4 URL">
+                            <label>Banner Image 4 (Optional)</label>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <input type="file" id="s_banner_file_4" class="form-control" accept="image/*" style="margin: 0; flex: 1;" title="Upload Banner 4">
+                                <input type="url" id="s_banner_4" class="form-control" placeholder="OR Paste URL 4" style="margin: 0; flex: 1;">
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label>Banner Image 5 URL (Optional)</label>
-                            <input type="url" id="s_banner_5" class="form-control" placeholder="Banner 5 URL">
+                            <label>Banner Image 5 (Optional)</label>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                <input type="file" id="s_banner_file_5" class="form-control" accept="image/*" style="margin: 0; flex: 1;" title="Upload Banner 5">
+                                <input type="url" id="s_banner_5" class="form-control" placeholder="OR Paste URL 5" style="margin: 0; flex: 1;">
+                            </div>
                         </div>
                         
                         <div class="form-group" style="margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 15px;">
@@ -698,7 +714,28 @@
                             </label>
                         </div>
                     </div>
-
+                    
+                    <div style="background: #fff8e1; padding: 20px; border-radius: 8px; margin-top: 25px; border: 1px dashed #d97d00; margin-bottom: 25px;">
+                        <h3 style="color: #d97d00; margin-top: 0; font-size: 18px;">🤝 Referral System Settings</h3>
+                        <div class="form-group">
+                            <label>Referral System Status</label>
+                            <select id="admin_referral_status" class="form-control">
+                                <option value="on">ON (Active)</option>
+                                <option value="off">OFF (Disabled)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Referrer Commission Amount (Tk)</label>
+                            <input type="number" id="admin_referral_commission" class="form-control" placeholder="যেমন: 50">
+                            <small style="color: #666; font-size: 12px;">অর্ডার 'Delivered' হলে রেফারার এই টাকাটা পাবে।</small>
+                        </div>
+                        <div class="form-group">
+                            <label>New User Welcome Bonus (Tk)</label>
+                            <input type="number" id="admin_welcome_bonus" class="form-control" placeholder="যেমন: 20">
+                            <small style="color: #666; font-size: 12px;">রেফারেল লিংক দিয়ে একাউন্ট খুললেই নতুন ইউজার এই টাকাটা পাবে।</small>
+                        </div>
+                    </div>
+                    
                     <button type="submit" class="btn-submit" id="settings-submit-btn" style="margin-top: 15px;">Save Settings</button>
                 </form>
             </div>
@@ -829,22 +866,26 @@
 
                     <div class="form-group" style="background: #f0f8ff; padding: 15px; border-radius: 8px; border: 1px solid #b3d4ff;">
                         <label style="color: #0056b3; margin-bottom: 10px;">🎨 Edit Images & Colors</label>
-                        <p style="font-size: 11px; color: gray; margin-top: 0;">* ছবি ডিলিট করতে চাইলে জাস্ট ছবির লিংকটা মুছে দিন।</p>
+                        <p style="font-size: 11px; color: gray; margin-top: 0;">* নতুন ছবি আপলোড করলে বা লিংক বসালে আগেরটি পরিবর্তন হয়ে যাবে।</p>
                         
-                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                            <input type="url" id="edit_img_url_1" class="form-control" placeholder="Main Image URL" style="margin: 0; flex: 2;">
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+                            <input type="file" id="edit_img_file_1" class="form-control" accept="image/*" style="margin: 0; flex: 1;" title="Upload New Image">
+                            <input type="url" id="edit_img_url_1" class="form-control" placeholder="Current URL / Paste New URL" style="margin: 0; flex: 1;">
                             <input type="text" id="edit_img_color_1" class="form-control" placeholder="Color Name" style="margin: 0; flex: 1;">
                         </div>
-                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                            <input type="url" id="edit_img_url_2" class="form-control" placeholder="Image URL 2" style="margin: 0; flex: 2;">
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+                            <input type="file" id="edit_img_file_2" class="form-control" accept="image/*" style="margin: 0; flex: 1;">
+                            <input type="url" id="edit_img_url_2" class="form-control" placeholder="Current URL / Paste New URL" style="margin: 0; flex: 1;">
                             <input type="text" id="edit_img_color_2" class="form-control" placeholder="Color Name" style="margin: 0; flex: 1;">
                         </div>
-                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                            <input type="url" id="edit_img_url_3" class="form-control" placeholder="Image URL 3" style="margin: 0; flex: 2;">
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+                            <input type="file" id="edit_img_file_3" class="form-control" accept="image/*" style="margin: 0; flex: 1;">
+                            <input type="url" id="edit_img_url_3" class="form-control" placeholder="Current URL / Paste New URL" style="margin: 0; flex: 1;">
                             <input type="text" id="edit_img_color_3" class="form-control" placeholder="Color Name" style="margin: 0; flex: 1;">
                         </div>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="url" id="edit_img_url_4" class="form-control" placeholder="Image URL 4" style="margin: 0; flex: 2;">
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <input type="file" id="edit_img_file_4" class="form-control" accept="image/*" style="margin: 0; flex: 1;">
+                            <input type="url" id="edit_img_url_4" class="form-control" placeholder="Current URL / Paste New URL" style="margin: 0; flex: 1;">
                             <input type="text" id="edit_img_color_4" class="form-control" placeholder="Color Name" style="margin: 0; flex: 1;">
                         </div>
                     </div>

@@ -2,6 +2,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebas
 import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, setDoc, deleteDoc, getDoc, onSnapshot, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 // 🔴 NEW: Import Firebase Auth
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+// ⭐ NEW: Import Firebase Storage for Direct Image Upload
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDXYobIjywCtH5_UgIhqaPiOCdVBJiEaks",
@@ -15,6 +17,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app); // 🔴 Auth Initialize
+const storage = getStorage(app); // ⭐ NEW: Storage Initialize
 
 window.allProductsList = []; // ⭐ NEW: Globally store products for CRM View
 let posCart = []; // ⭐ NEW: Array to hold items for POS
@@ -92,6 +95,29 @@ function loadAllData() {
     loadPosHistory(); // ⭐ NEW: Load POS Created History
     loadWalletRequests(); // ⭐ NEW: Load Wallet Deposit/Withdraw Requests
 }
+
+// ==========================================
+// ⭐ NEW: Helper Function for Direct Image Upload
+// ==========================================
+async function uploadImageToFirebase(fileInputId) {
+    const fileInput = document.getElementById(fileInputId);
+    if (fileInput && fileInput.files && fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const fileName = `products/${Date.now()}_${file.name}`;
+        const storageRef = ref(storage, fileName);
+        try {
+            const snapshot = await uploadBytes(storageRef, file);
+            const downloadUrl = await getDownloadURL(snapshot.ref);
+            return downloadUrl;
+        } catch (error) {
+            console.error("Image upload failed:", error);
+            alert("Image upload failed: " + error.message);
+            return null;
+        }
+    }
+    return null; // Return null if no file selected
+}
+
 
 // ==========================================
 // 🔴 NEW: Activity Log Function (হিস্ট্রি সেভ করার ফাংশন)
@@ -707,7 +733,55 @@ window.updateOrderStatus = async function(dbId, trackingId, oldStatus) {
                     await updateDoc(orderRef, { stockDeducted: true });
                 }
             }
-
+            // ⭐ NEW: REFERRAL COMMISSION LOGIC (অর্ডার ডেলিভারি হলে অটোমেটিক টাকা দেওয়া)
+            if (newStatus === "Delivered" && orderSnap.exists()) {
+                if (!orderData.referralPaid) { // চেক করা যে আগে টাকা দেওয়া হয়েছে কি না
+                    try {
+                        const settingsSnap = await getDoc(doc(db, "settings", "general"));
+                        const settings = settingsSnap.exists() ? settingsSnap.data() : {};
+                        
+                        // যদি রেফারেল অন থাকে এবং কমিশনের পরিমাণ 0 এর বেশি হয়
+                        if (settings.referralStatus === 'on' && settings.referralCommission > 0) {
+                            
+                            // ১. যে অর্ডার করেছে, সেই কাস্টমারকে খুঁজে বের করা
+                            let customerRefData = null;
+                            let cId = orderData.userId || orderData.customerId || orderData.uid;
+                            let cEmail = orderData.customerEmail || orderData.email;
+                            
+                            if (cId) {
+                                let cSnap = await getDoc(doc(db, "customers", cId));
+                                if(cSnap.exists()) customerRefData = cSnap.data();
+                            } else if (cEmail) {
+                                let cQuery = query(collection(db, "customers"), where("email", "==", cEmail));
+                                let cQuerySnap = await getDocs(cQuery);
+                                if(!cQuerySnap.empty) customerRefData = cQuerySnap.docs[0].data();
+                            }
+                            
+                            // ২. যদি কাস্টমার কারো রেফারেল কোড দিয়ে এসে থাকে
+                            if (customerRefData && customerRefData.referredBy) {
+                                let refQuery = query(collection(db, "customers"), where("myReferralCode", "==", customerRefData.referredBy));
+                                let refSnap = await getDocs(refQuery);
+                                
+                                // ৩. রেফারারকে খুঁজে তার একাউন্টে টাকা যোগ করে দেওয়া
+                                if (!refSnap.empty) {
+                                    let refDoc = refSnap.docs[0];
+                                    let currentBalance = refDoc.data().walletBalance || 0;
+                                    
+                                    await updateDoc(doc(db, "customers", refDoc.id), {
+                                        walletBalance: currentBalance + Number(settings.referralCommission)
+                                    });
+                                    
+                                    // ৪. অর্ডারে সিল মেরে দেওয়া যে কমিশন দেওয়া শেষ (যাতে পরে আর ডাবল না যায়)
+                                    await updateDoc(orderRef, { referralPaid: true });
+                                    console.log("🎉 Referral Commission Sent to:", customerRefData.referredBy);
+                                }
+                            }
+                        }
+                    } catch (err) {
+                        console.error("Referral Bonus Error:", err);
+                    }
+                }
+            }
             // ⭐ STOCK RESTORE LOGIC (If Failed or Returned, bring the stock back!)
             if ((newStatus === "Failed" || newStatus === "Returned") && orderSnap.exists()) {
                 if (orderData.stockDeducted && orderData.items) {
@@ -1327,6 +1401,9 @@ window.openAdvancedEditProduct = async function(productId) {
     for(let i=1; i<=4; i++) {
         document.getElementById(`edit_img_url_${i}`).value = '';
         document.getElementById(`edit_img_color_${i}`).value = '';
+        // Also clear file inputs
+        const fileInput = document.getElementById(`edit_img_file_${i}`);
+        if(fileInput) fileInput.value = '';
     }
 
     // Fill available fields
@@ -1358,17 +1435,17 @@ if(editProductForm) {
         const totalStockCalculated = sm + sl + sxl + sxxl + sfree;
         const sizesObj = { M: sm, L: sl, XL: sxl, XXL: sxxl, FreeSize: sfree };
 
-        // Process Images & Colors
-        const img1 = document.getElementById('edit_img_url_1').value.trim();
+        // Process Images & Colors (⭐ Check File Upload First, then fallback to URL)
+        const img1 = await uploadImageToFirebase('edit_img_file_1') || document.getElementById('edit_img_url_1').value.trim();
         const col1 = document.getElementById('edit_img_color_1').value.trim();
 
-        const img2 = document.getElementById('edit_img_url_2').value.trim();
+        const img2 = await uploadImageToFirebase('edit_img_file_2') || document.getElementById('edit_img_url_2').value.trim();
         const col2 = document.getElementById('edit_img_color_2').value.trim();
 
-        const img3 = document.getElementById('edit_img_url_3').value.trim();
+        const img3 = await uploadImageToFirebase('edit_img_file_3') || document.getElementById('edit_img_url_3').value.trim();
         const col3 = document.getElementById('edit_img_color_3').value.trim();
 
-        const img4 = document.getElementById('edit_img_url_4').value.trim();
+        const img4 = await uploadImageToFirebase('edit_img_file_4') || document.getElementById('edit_img_url_4').value.trim();
         const col4 = document.getElementById('edit_img_color_4').value.trim();
 
         let imageArray = [img1, img2, img3, img4].filter(url => url !== '');
@@ -1411,14 +1488,14 @@ if(editProductForm) {
 }
 
 // ==========================================
-// 3. Add New Product (WITH SIZES & IMAGE COLORS)
+// 3. Add New Product (WITH SIZES & IMAGE COLORS & FIREBASE STORAGE UPLOAD)
 // ==========================================
 const addProductForm = document.getElementById('addProductForm');
 if(addProductForm) {
     addProductForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('product-submit-btn'); 
-        btn.innerText = "Saving..."; btn.disabled = true;
+        btn.innerText = "Uploading (Please Wait)..."; btn.disabled = true;
         
         const codeInput = document.getElementById('p_code');
         const productCode = codeInput ? codeInput.value : 'N/A';
@@ -1433,17 +1510,17 @@ if(addProductForm) {
         const totalStockCalculated = sm + sl + sxl + sxxl + sfree;
         const sizesObj = { M: sm, L: sl, XL: sxl, XXL: sxxl, FreeSize: sfree };
 
-        // Extract Image URLs and their Color mappings
-        const img1 = document.getElementById('img_url_1').value.trim();
+        // Extract Image URLs and their Color mappings (⭐ Check File Upload First, then fallback to URL)
+        const img1 = await uploadImageToFirebase('img_file_1') || document.getElementById('img_url_1').value.trim();
         const col1 = document.getElementById('img_color_1').value.trim();
 
-        const img2 = document.getElementById('img_url_2').value.trim();
+        const img2 = await uploadImageToFirebase('img_file_2') || document.getElementById('img_url_2').value.trim();
         const col2 = document.getElementById('img_color_2').value.trim();
 
-        const img3 = document.getElementById('img_url_3').value.trim();
+        const img3 = await uploadImageToFirebase('img_file_3') || document.getElementById('img_url_3').value.trim();
         const col3 = document.getElementById('img_color_3').value.trim();
 
-        const img4 = document.getElementById('img_url_4').value.trim();
+        const img4 = await uploadImageToFirebase('img_file_4') || document.getElementById('img_url_4').value.trim();
         const col4 = document.getElementById('img_color_4').value.trim();
 
         let imageArray = [img1, img2, img3, img4].filter(url => url !== '');
@@ -1486,6 +1563,17 @@ if(addProductForm) {
             btn.innerText = "Upload Product"; btn.disabled = false;
         }
     });
+}
+
+window.deleteProduct = async function(id) {
+    if(confirm("Are you sure you want to delete this product?")) {
+        try {
+            await deleteDoc(doc(db, "products", id));
+            alert("🗑️ Product deleted successfully!");
+        } catch (e) {
+            alert("Error: " + e.message);
+        }
+    }
 }
 
 // ==========================================
@@ -1564,7 +1652,10 @@ async function loadSettings() {
             if(document.getElementById('s_email')) document.getElementById('s_email').value = d.email || '';
             if(document.getElementById('s_whatsapp')) document.getElementById('s_whatsapp').value = d.whatsapp || '';
             if(document.getElementById('s_messenger')) document.getElementById('s_messenger').value = d.messenger || '';
-            
+            // ⭐ NEW: Load Referral Settings
+            if(document.getElementById('admin_referral_status')) document.getElementById('admin_referral_status').value = d.referralStatus || 'off';
+            if(document.getElementById('admin_referral_commission')) document.getElementById('admin_referral_commission').value = d.referralCommission || '';
+            if(document.getElementById('admin_welcome_bonus')) document.getElementById('admin_welcome_bonus').value = d.welcomeBonus || ''; 
             const popupToggle = document.getElementById('s_sales_popup_toggle');
             if(popupToggle) {
                 popupToggle.checked = d.salesPopupEnabled !== undefined ? d.salesPopupEnabled : true;
@@ -1577,17 +1668,30 @@ const settingsForm = document.getElementById('settingsForm');
 if(settingsForm) {
     settingsForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const btn = document.getElementById('settings-submit-btn'); btn.innerText = "Saving...";
+        const btn = document.getElementById('settings-submit-btn'); 
+        btn.innerText = "Uploading & Saving..."; 
+        btn.disabled = true;
+
         try {
+            // ⭐ NEW: Upload Banners if files are selected, else use URL input
+            const banner1 = await uploadImageToFirebase('s_banner_file_1') || document.getElementById('s_banner_1').value;
+            const banner2 = await uploadImageToFirebase('s_banner_file_2') || document.getElementById('s_banner_2').value;
+            const banner3 = await uploadImageToFirebase('s_banner_file_3') || document.getElementById('s_banner_3').value;
+            const banner4 = await uploadImageToFirebase('s_banner_file_4') || document.getElementById('s_banner_4').value;
+            const banner5 = await uploadImageToFirebase('s_banner_file_5') || document.getElementById('s_banner_5').value;
+
             await setDoc(doc(db, "settings", "general"), {
                 headline: document.getElementById('s_headline').value,
-                websiteDomain: document.getElementById('s_domain_name') ? document.getElementById('s_domain_name').value : 'ebong.com', // ⭐ NEW: Save Domain Name
+                websiteDomain: document.getElementById('s_domain_name') ? document.getElementById('s_domain_name').value : 'ebong.com',
+                referralStatus: document.getElementById('admin_referral_status') ? document.getElementById('admin_referral_status').value : 'off',
+                referralCommission: document.getElementById('admin_referral_commission') ? Number(document.getElementById('admin_referral_commission').value) : 0,
+                welcomeBonus: document.getElementById('admin_welcome_bonus') ? Number(document.getElementById('admin_welcome_bonus').value) : 0,
                 
-                bannerUrl: document.getElementById('s_banner_1').value, 
-                bannerUrl_2: document.getElementById('s_banner_2').value,
-                bannerUrl_3: document.getElementById('s_banner_3').value,
-                bannerUrl_4: document.getElementById('s_banner_4').value,
-                bannerUrl_5: document.getElementById('s_banner_5').value,
+                bannerUrl: banner1, 
+                bannerUrl_2: banner2,
+                bannerUrl_3: banner3,
+                bannerUrl_4: banner4,
+                bannerUrl_5: banner5,
                 bannerSlideTime: parseInt(document.getElementById('s_banner_time').value) || 3,
                 
                 address: document.getElementById('s_address').value,
@@ -1597,11 +1701,22 @@ if(settingsForm) {
                 messenger: document.getElementById('s_messenger').value,
                 salesPopupEnabled: document.getElementById('s_sales_popup_toggle').checked
             }, { merge: true });
+            
             alert("✅ Settings, Domain, Banners & Contact Info Saved!");
+            
+            // Clear File Inputs after successful save
+            for(let i=1; i<=5; i++) {
+                if(document.getElementById(`s_banner_file_${i}`)) {
+                    document.getElementById(`s_banner_file_${i}`).value = '';
+                }
+            }
+
         } catch (error) {
             alert("Error: " + error.message);
+        } finally {
+            btn.innerText = "Save Settings";
+            btn.disabled = false;
         }
-        btn.innerText = "Save Settings";
     });
 }
 

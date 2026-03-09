@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 import { getFirestore, collection, getDocs, addDoc, doc, getDoc, onSnapshot, updateDoc, setDoc, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 // ⭐ NEW: Auth Imports for Customer Login
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDXYobIjywCtH5_UgIhqaPiOCdVBJiEaks",
@@ -25,7 +25,12 @@ window.deliveryRates = { inside: 60, outside: 120, freeThreshold: 0, autoFreeEna
 window.allProductsList = []; 
 
 // ⭐ Customer Auth Variables
-let currentCustomer = null; 
+let currentCustomer = null;
+// ⭐ NEW: URL থেকে রেফারেল কোড ধরে সাইনআপ ফর্মে অটো-ফিল করা
+const urlParams = new URLSearchParams(window.location.search);
+if(urlParams.has('ref') && document.getElementById('auth_referral')) {
+    document.getElementById('auth_referral').value = urlParams.get('ref').toUpperCase();
+}
 let customerDetails = {};
 let customerAddresses = []; 
 let userWishlist = []; // ⭐ NEW: Array to hold wishlist product IDs
@@ -64,11 +69,23 @@ window.isCustomerLoggedIn = function() {
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         currentCustomer = user;
+        window.currentCustomer = user; // ⭐ NEW: HTML কে ডাটা দেওয়ার জন্য গ্লোবাল করা হলো
         
         // Fetch user extra details from Firestore
         const userDoc = await getDoc(doc(db, "customers", user.uid));
         if(userDoc.exists()) {
-            customerDetails = userDoc.data();
+            let data = userDoc.data();
+            
+            // ⭐ NEW: পুরোনো ইউজারদের যদি রেফারেল কোড না থাকে, তবে অটোমেটিক বানিয়ে দেওয়া
+            if (!data.myReferralCode) {
+                let randomNum = Math.floor(1000 + Math.random() * 9000);
+                let newCode = data.name ? data.name.replace(/\s+/g, '').toUpperCase().substring(0, 5) + randomNum : "EBONG" + randomNum;
+                await updateDoc(doc(db, "customers", user.uid), { myReferralCode: newCode });
+                data.myReferralCode = newCode;
+            }
+
+            customerDetails = data;
+            window.customerDetails = data; // ⭐ NEW: HTML কে ডাটা দেওয়ার জন্য গ্লোবাল করা হলো
             
             // ⭐ NEW: Fetch Wallet Balance securely
             window.currentWalletBalance = customerDetails.walletBalance || 0;
@@ -121,7 +138,9 @@ onAuthStateChanged(auth, async (user) => {
         loadCustomerAddresses();
         listenForAdminNotifications();
         loadWishlist(); 
-        loadWalletHistory(); // ⭐ NEW: Load wallet transaction history
+        loadWalletHistory(); 
+        loadCustomerOrderHistory();
+        // ⭐ NEW: Load wallet transaction history
 
         // Listen for real-time wallet updates
         onSnapshot(doc(db, "customers", user.uid), (docSnap) => {
@@ -141,7 +160,9 @@ onAuthStateChanged(auth, async (user) => {
 
     } else {
         currentCustomer = null;
+        window.currentCustomer = null;
         customerDetails = {};
+        window.customerDetails = null;
         customerAddresses = [];
         userWishlist = [];
         window.currentWalletBalance = 0;
@@ -219,6 +240,10 @@ if(authForm) {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
                 
+                // ⭐ NEW: রেফারেল কোড ধরা এবং নতুন ইউজারের জন্য কোড বানানো
+                const referralInput = document.getElementById('auth_referral') ? document.getElementById('auth_referral').value.trim().toUpperCase() : "";
+                const generatedRefCode = name.replace(/\s+/g, '').substring(0, 4).toUpperCase() + Math.floor(1000 + Math.random() * 9000);
+
                 await setDoc(doc(db, "customers", user.uid), {
                     name: name,
                     phone: phone,
@@ -226,6 +251,8 @@ if(authForm) {
                     walletBalance: 0, 
                     spinTickets: 0, // Initial tickets
                     walletPin: null, // Initial PIN
+                    referredBy: referralInput, // ⭐ NEW: যার মাধ্যমে এসেছে তার কোড
+                    myReferralCode: generatedRefCode, // ⭐ NEW: ইউজারের নিজের তৈরি হওয়া কোড
                     createdAt: new Date().toLocaleString()
                 });
                 
@@ -533,20 +560,54 @@ function loadWalletHistory() {
 
 
 // Fallback logic if needed externally
-window.checkAndOpenUserModal = function() {
+window.checkAndOpenUserModal = function() { 
+    console.log("1. Modal function Started!"); // চেকার ১
+
     if (currentCustomer) {
-        document.getElementById('profile-user-name').innerText = customerDetails.name || 'Valued Customer';
-        document.getElementById('profile-user-email').innerText = customerDetails.email || currentCustomer.email;
-        loadCustomerOrderHistory();
-        
+        console.log("2. Customer found:", currentCustomer.email); // চেকার ২
+
         document.getElementById('profile-modal').style.display = 'block';
         document.body.classList.add('modal-open');
+
+        let pName = "Valued Customer";
+        let pEmail = currentCustomer.email || "";
+
+        console.log("3. Customer Details Database:", customerDetails); // চেকার ৩
+
+        if (typeof customerDetails !== 'undefined' && customerDetails !== null) {
+            if (customerDetails.name) pName = customerDetails.name;
+            if (customerDetails.email) pEmail = customerDetails.email;
+        }
+
+        if(document.getElementById('profile-user-name')) {
+            document.getElementById('profile-user-name').innerText = pName;
+        }
+        if(document.getElementById('profile-user-email')) {
+            document.getElementById('profile-user-email').innerText = pEmail;
+        }
+
+        if(document.getElementById('my-ref-link-display')) {
+            if (typeof customerDetails !== 'undefined' && customerDetails !== null && customerDetails.myReferralCode) {
+                const fullLink = window.location.origin + "/?ref=" + customerDetails.myReferralCode;
+                document.getElementById('my-ref-link-display').value = fullLink;
+            } else {
+                document.getElementById('my-ref-link-display').value = "লিংক তৈরি হয়নি (নতুন একাউন্ট খুলুন)";
+            }
+        }
+
+        try {
+            if (typeof loadCustomerOrderHistory === "function") {
+                loadCustomerOrderHistory();
+            }
+        } catch(e) { console.log("Order history error:", e); }
+
+        console.log("4. Everything Done successfully!"); // চেকার ৪
+
     } else {
         document.getElementById('auth-modal').style.display = 'block';
         document.body.classList.add('modal-open');
     }
 }
-
 // ==========================================
 // ⭐ WISHLIST LOGIC (Toggle Empty/Solid Heart)
 // ==========================================
@@ -2509,24 +2570,44 @@ function startFakeSalesNotifications() {
     setTimeout(showPopup, 10000);
 }
 
+// ==========================================
+// ⭐ SUPER FAST SEARCH BAR LOGIC
+// ==========================================
 window.filterGlobalProducts = function() {
-    let input = document.getElementById('main-search-bar').value.toLowerCase();
+    let searchInput = document.getElementById('main-search-bar');
+    if (!searchInput) return;
+    
+    let input = searchInput.value.toLowerCase().trim();
     let productCards = document.querySelectorAll('.product-card');
 
     productCards.forEach(card => {
-        let name = card.querySelector('.product-name').innerText.toLowerCase();
-        let category = card.closest('.category-section').querySelector('h2').innerText.toLowerCase();
+        let nameEl = card.querySelector('.product-name');
+        let name = nameEl ? nameEl.innerText.toLowerCase() : '';
         
+        let section = card.closest('.category-section');
+        let catEl = section ? section.querySelector('h2') : null;
+        let category = catEl ? catEl.innerText.toLowerCase() : '';
+        
+        // যদি নাম বা ক্যাটাগরির সাথে সার্চের লেখা মিলে যায়
         if (name.includes(input) || category.includes(input)) {
             card.style.display = 'block';
         } else {
-            card.style.display = 'none';
+            card.style.display = 'none'; // না মিললে লুকিয়ে ফেলবে
         }
     });
 
+    // যে ক্যাটাগরির সব প্রোডাক্ট লুকিয়ে গেছে, সেই ক্যাটাগরির টাইটেলটাও লুকিয়ে ফেলা
     document.querySelectorAll('.category-section').forEach(section => {
-        let visibleCards = section.querySelectorAll('.product-card[style="display: block;"]');
-        if(visibleCards.length === 0 && input !== "") {
+        let hasVisibleCard = false;
+        let cards = section.querySelectorAll('.product-card');
+        
+        cards.forEach(c => {
+            if (c.style.display !== 'none') {
+                hasVisibleCard = true;
+            }
+        });
+
+        if (!hasVisibleCard && input !== "") {
             section.style.display = 'none';
         } else {
             section.style.display = 'block';
@@ -2534,6 +2615,7 @@ window.filterGlobalProducts = function() {
     });
 }
 
+// Window Onload (এখানে অটোমেটিক সার্চ কানেক্ট করা হয়েছে)
 window.onload = () => { 
     console.log("Window Loaded. Initializing app...");
     loadSettings(); 
@@ -2541,4 +2623,140 @@ window.onload = () => {
     loadReviews();
     startFakeSalesNotifications();
     initCustomerChat(); 
+    
+    // ⭐ NEW: Auto connect search bar without HTML changes
+    const searchBar = document.getElementById('main-search-bar');
+    if(searchBar) {
+        searchBar.addEventListener('input', window.filterGlobalProducts);
+        searchBar.addEventListener('keyup', window.filterGlobalProducts);
+    }
 };
+// ⭐ NEW: Copy Referral Link Function
+window.copyMyRefLink = function() {
+    if(!customerDetails || !customerDetails.myReferralCode) {
+        alert("Your referral code is not ready yet!");
+        return;
+    }
+    
+    // ডাইনামিক লিংক তৈরি করা
+    const refCode = customerDetails.myReferralCode;
+    const currentDomain = window.location.origin; // আপনার সাইটের বর্তমান অ্যাড্রেস
+    const refLink = `${currentDomain}?ref=${refCode}`;
+    
+    // লিংক কপি করা
+    navigator.clipboard.writeText(refLink).then(() => {
+        alert(`🎉 Your Invite Link Copied!\n\nShare this link with your friends:\n${refLink}`);
+    }).catch(err => {
+        alert("Failed to copy link!");
+    });
+}
+// ==========================================
+// ⭐ EDIT PROFILE & PASSWORD RESET LOGIC
+// ==========================================
+
+window.openEditProfileModal = function() {
+    if(!currentCustomer) {
+        alert("Please login first!");
+        return;
+    }
+    
+    // ইউজারের বর্তমান ডাটা ফর্মে বসানো (ইমেইল এডিট করা যাবে না)
+    document.getElementById('edit_email').value = currentCustomer.email || '';
+    document.getElementById('edit_name').value = customerDetails.name || '';
+    document.getElementById('edit_phone').value = customerDetails.phone || '';
+    
+    // ড্রপডাউন বন্ধ করে মোডাল ওপেন করা
+    document.getElementById('user-dropdown-menu').classList.remove('show');
+    document.getElementById('edit-profile-modal').style.display = 'block';
+    document.body.classList.add('modal-open');
+}
+
+const editProfileForm = document.getElementById('edit-profile-form');
+if(editProfileForm) {
+    editProfileForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button');
+        btn.innerText = "Saving..."; 
+        btn.disabled = true;
+
+        const newName = document.getElementById('edit_name').value.trim();
+        const newPhone = document.getElementById('edit_phone').value.trim();
+
+        try {
+            // ডাটাবেসে নাম এবং নাম্বার আপডেট করা
+            await updateDoc(doc(db, "customers", currentCustomer.uid), { 
+                name: newName, 
+                phone: newPhone 
+            });
+            
+            // ওয়েবসাইটের ভেতরের ডাটা আপডেট করা
+            customerDetails.name = newName; 
+            customerDetails.phone = newPhone;
+
+            // ওয়েবসাইটের সব জায়গায় নতুন নাম বসিয়ে দেওয়া
+            if(document.getElementById('profile-user-name')) document.getElementById('profile-user-name').innerText = newName;
+            if(document.getElementById('dropdown-user-name')) document.getElementById('dropdown-user-name').innerText = newName;
+            if(document.getElementById('c_name')) document.getElementById('c_name').value = newName;
+            if(document.getElementById('c_phone')) document.getElementById('c_phone').value = newPhone;
+
+            alert("✅ Profile updated successfully!");
+            document.getElementById('edit-profile-modal').style.display = 'none';
+            document.body.classList.remove('modal-open');
+        } catch (error) {
+            console.error("Profile Update Error: ", error);
+            alert("Failed to update profile.");
+        } finally {
+            btn.innerText = "Save Changes"; 
+            btn.disabled = false;
+        }
+    });
+}
+
+// ⭐ পাসওয়ার্ড রিসেট ফাংশন
+window.sendUserPasswordReset = async function() {
+    if(!currentCustomer || !currentCustomer.email) return;
+    
+    if(confirm(`Are you sure you want to reset your password?\n\nA reset link will be sent to: ${currentCustomer.email}`)) {
+        try {
+            // ইউজারের ইমেইলে পাসওয়ার্ড চেঞ্জ করার লিংক পাঠানো
+            await sendPasswordResetEmail(auth, currentCustomer.email);
+            alert("✅ Password reset link has been sent to your email!\n\nPlease check your inbox (and spam folder).");
+            
+            document.getElementById('edit-profile-modal').style.display = 'none';
+            document.body.classList.remove('modal-open');
+        } catch (error) {
+            console.error("Reset Password Error:", error);
+            alert("Error sending reset email: " + error.message);
+        }
+    }
+}
+// ==========================================
+// ⭐ FORGOT PASSWORD (FROM LOGIN SCREEN)
+// ==========================================
+window.handleForgotPassword = async function() {
+    const emailBox = document.getElementById('auth_email');
+    const emailInput = emailBox ? emailBox.value.trim() : '';
+
+    // যদি কাস্টমার ইমেইল না লিখেই বাটনে ক্লিক করে
+    if (!emailInput) {
+        alert("⚠️ Please enter your Email address in the box above first, then click 'Forgot Password?'");
+        if(emailBox) emailBox.focus();
+        return;
+    }
+
+    if(confirm(`Send password reset link to: ${emailInput}?`)) {
+        try {
+            await sendPasswordResetEmail(auth, emailInput);
+            alert("✅ Password reset link has been sent!\n\nPlease check your email inbox (and spam folder) to reset your password.");
+        } catch (error) {
+            console.error("Forgot Password Error:", error);
+            if(error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+                alert("❌ No account found with this email. Please check the spelling or Sign Up first.");
+            } else if(error.code === 'auth/invalid-email') {
+                alert("❌ Please enter a valid email address.");
+            } else {
+                alert("Error: " + error.message);
+            }
+        }
+    }
+}

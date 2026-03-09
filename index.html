@@ -8,7 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="style.css?v=15">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         /* ==========================================
            ⭐ UNIVERSAL & RESPONSIVE FIX
@@ -352,7 +352,42 @@
             border-color: var(--brand-color);
             box-shadow: 0 0 10px rgba(217, 125, 0, 0.2);
         }
+    /* ==========================================
+           ⭐ MOBILE AUTO-FIT MAGIC CSS ⭐
+           ========================================== */
+        @media screen and (max-width: 768px) {
+            /* ওয়েবসাইট যেন ডানে-বামে নড়াচড়া না করে (কাটা না যায়) */
+            html, body {
+                overflow-x: hidden !important;
+                max-width: 100vw !important;
+            }
 
+            /* কার্ট এবং অন্যান্য আইকন হালকা ছোট করে স্ক্রিনে ফিট করা */
+            #cart-btn, #user-account-btn, #notification-btn {
+                transform: scale(0.85); /* আইকন ১৫% ছোট করবে */
+                margin: 0 2px !important;
+                padding: 6px !important;
+            }
+
+            /* সার্চ বার যেন অতিরিক্ত জায়গা নিয়ে কার্টকে ধাক্কা না দেয় */
+            .search-container {
+                flex: 1 !important;
+                max-width: 45vw !important; /* সার্চ বার অর্ধেক জায়গা নেবে */
+            }
+
+            /* হেডারের দুই পাশের ফাঁকা জায়গা কমানো */
+            header, .header-container {
+                padding-left: 5px !important;
+                padding-right: 5px !important;
+                gap: 5px !important; /* বাটনগুলোর মাঝের দূরত্ব কমাবে */
+            }
+            
+            /* ওয়েবসাইটের লোগো বা নাম থাকলে সেটাও এডজাস্ট করা */
+            .logo, .brand-name {
+                font-size: 18px !important;
+                max-width: 100px !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -418,14 +453,17 @@
                 </button>
                 <button id="direct-logout-btn" style="display: none; background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 12px; transition: 0.3s; box-shadow: 0 2px 5px rgba(220,53,69,0.3);">Logout</button>
                 
-                <div class="dropdown-menu" id="user-dropdown-menu">
-                    <div style="padding: 10px 15px; border-bottom: 1px solid var(--border-color); background: var(--bg-light-grey);">
-                        <strong style="font-size: 14px;" id="dropdown-user-name">Customer</strong><br>
-                        <small style="color: gray; font-size: 11px;" id="dropdown-user-email">email@example.com</small>
-                    </div>
-                    <div class="dropdown-item" onclick="openProfileTab('orders')">📦 My Orders</div>
-                    <div class="dropdown-item" onclick="openProfileTab('address')">📍 Address Book</div>
-                    <div class="dropdown-item" onclick="openProfileTab('wishlist')">❤️ My Wishlist</div>
+<div class="dropdown-menu" id="user-dropdown-menu">
+    <div style="padding: 10px 15px; border-bottom: 1px solid var(--border-color); background: var(--bg-light-grey);">
+        <strong style="font-size: 14px;" id="dropdown-user-name">Customer</strong><br>
+        <small style="color: gray; font-size: 11px;" id="dropdown-user-email">email@example.com</small>
+    </div>
+    <div class="dropdown-item" onclick="openProfileTab('orders')">📦 My Orders</div>
+    <div class="dropdown-item" onclick="openProfileTab('address')">📍 Address Book</div>
+    <div class="dropdown-item" onclick="openProfileTab('wishlist')">❤️ My Wishlist</div>
+    
+    <div class="dropdown-item" onclick="openEditProfileModal()">✏️ Edit Profile</div>
+</div>
                 </div>
             </div>
 
@@ -620,9 +658,9 @@
 
 
     <div class="search-container">
-        <input type="text" id="main-search-bar" class="search-input" placeholder="Search for products, categories..." onkeyup="filterGlobalProducts()">
-        <button class="search-btn" onclick="filterGlobalProducts()">🔍</button>
-    </div>
+       <input type="text" id="main-search-bar" class="search-input" placeholder="Search for products, categories..." onkeyup="filterGlobalProducts()" oninput="filterGlobalProducts()">
+       <button class="search-btn" onclick="filterGlobalProducts()">🔍</button>
+   </div>
 
     <nav class="category-nav-bar" id="category-nav-bar">
         <ul id="dynamic-category-menu">
@@ -869,10 +907,15 @@
                 <div id="auth-phone-field" style="display: none;">
                     <input type="tel" id="auth_phone" class="form-control" placeholder="Phone Number">
                 </div>
+                <div id="auth-referral-field" style="display: none;">
+                    <input type="text" id="auth_referral" class="form-control" placeholder="Referral Code (Optional)" style="text-transform: uppercase; margin-bottom: 15px;">
+                </div>
 
                 <input type="email" id="auth_email" class="form-control" placeholder="Email Address" required>
                 <input type="password" id="auth_password" class="form-control" placeholder="Password (Min 6 characters)" required minlength="6">
-                
+             <div style="text-align: right; margin-top: 5px; margin-bottom: 10px;">
+                <a href="#" onclick="handleForgotPassword()" style="font-size: 12px; color: var(--brand-color); font-weight: bold; text-decoration: none;">Forgot Password?</a>
+             </div>
                 <button type="submit" id="auth-submit-btn" style="width: 100%; background: #111; color: #fff; border: none; padding: 14px; border-radius: 8px; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.3s; margin-top: 10px;">Login</button>
             </form>
             
@@ -892,7 +935,13 @@
                 <h2 id="profile-user-name" style="margin: 0; font-size: 22px;">Loading...</h2>
                 <p id="profile-user-email" style="margin: 5px 0 0 0; font-size: 13px; opacity: 0.9;">...</p>
             </div>
-
+            <div style="background: #fff8e1; border: 1px dashed #d97d00; padding: 15px; border-radius: 8px; margin-top: 15px; text-align: center;">
+                <p style="margin: 0; font-size: 13px; color: #555; font-weight: bold;">আপনার ইনভাইট লিংক:</p>
+                
+                <input type="text" id="my-ref-link-display" readonly value="Loading..." style="width: 100%; margin: 10px 0; padding: 10px; border: 1px solid #ffcc80; border-radius: 5px; text-align: center; color: #d97d00; font-weight: bold; background: #fff; font-size: 13px; box-sizing: border-box;">
+                
+                <button onclick="copyMyRefLink()" style="background: #111; color: #fff; border: none; padding: 10px 15px; border-radius: 5px; font-size: 13px; cursor: pointer; width: 100%; font-weight: bold;">🔗 Copy Link</button>
+            </div>
             <div style="display: flex; background: #fff; border-bottom: 1px solid var(--border-color); overflow-x: auto; white-space: nowrap;">
                 <button class="profile-tab-btn active" onclick="switchProfileTab('orders')" style="flex: 1; padding: 15px; background: none; border: none; font-weight: bold; font-family: inherit; cursor: pointer; border-bottom: 3px solid var(--brand-color); color: var(--brand-color);">📦 Orders</button>
                 <button class="profile-tab-btn" onclick="switchProfileTab('address')" style="flex: 1; padding: 15px; background: none; border: none; font-weight: bold; font-family: inherit; cursor: pointer; color: gray;">📍 Address</button>
@@ -1161,12 +1210,39 @@
             }
         });
 
-        // Function called from dropdown menu items
+        /// Function called from dropdown menu items
         window.openProfileTab = function(tabId) {
             dropdownMenu.classList.remove('show'); // close dropdown
             profileModal.style.display = 'block'; // open modal
             document.body.classList.add('modal-open');
             switchProfileTab(tabId); // switch to the correct tab
+
+            // ⭐ NEW: ডাটা লোড করার আসল ম্যাজিক এখানে বসানো হলো!
+            if (typeof currentCustomer !== 'undefined' && currentCustomer) {
+                let pName = "Valued Customer";
+                let pEmail = currentCustomer.email || "No Email";
+
+                if (typeof customerDetails !== 'undefined' && customerDetails !== null) {
+                    if (customerDetails.name) pName = customerDetails.name;
+                    if (customerDetails.email) pEmail = customerDetails.email;
+                }
+
+                if(document.getElementById('profile-user-name')) {
+                    document.getElementById('profile-user-name').innerText = pName;
+                }
+                if(document.getElementById('profile-user-email')) {
+                    document.getElementById('profile-user-email').innerText = pEmail;
+                }
+
+                if(document.getElementById('my-ref-link-display')) {
+                    if (typeof customerDetails !== 'undefined' && customerDetails !== null && customerDetails.myReferralCode) {
+                        const fullLink = window.location.origin + "/?ref=" + customerDetails.myReferralCode;
+                        document.getElementById('my-ref-link-display').value = fullLink;
+                    } else {
+                        document.getElementById('my-ref-link-display').value = "লিংক তৈরি হয়নি (নতুন একাউন্ট খুলুন)";
+                    }
+                }
+            }
         }
 
         document.getElementById('close-auth-modal').onclick = function() {
@@ -1211,7 +1287,7 @@
             
             document.getElementById('auth-name-field').style.display = isLoginMode ? 'none' : 'block';
             document.getElementById('auth-phone-field').style.display = isLoginMode ? 'none' : 'block';
-            
+            document.getElementById('auth-referral-field').style.display = isLoginMode ? 'none' : 'block';
             if(!isLoginMode) {
                 document.getElementById('auth_name').required = true;
                 document.getElementById('auth_phone').required = true;
@@ -1345,6 +1421,79 @@
             }
             if(typeof window.updateCartUI === 'function') window.updateCartUI(); 
         }
-    </script>
+
+    // 💥 বুলডোজার স্ক্রিপ্ট - সব বাধা ভেঙে কাজ করবে!
+    setInterval(function() {
+        try {
+            // ডাটা খোঁজার চেষ্টা (যদি ডাটা না পায় তবে ডিফল্ট লেখা বসাবে)
+            let cName = "Valued Customer";
+            let cEmail = "";
+            let cLink = "লিংক তৈরি হয়নি (নতুন একাউন্ট খুলুন)";
+
+            if (window.customerDetails && window.customerDetails.name) cName = window.customerDetails.name;
+            if (window.currentCustomer && window.currentCustomer.email) cEmail = window.currentCustomer.email;
+            if (window.customerDetails && window.customerDetails.myReferralCode) {
+                cLink = window.location.origin + "/?ref=" + window.customerDetails.myReferralCode;
+            }
+
+            // মোডাল ওপেন থাকলে জোর করে Loading মুছে ডাটা বসানো
+            let profileModal = document.getElementById('profile-modal');
+            if (profileModal && (profileModal.style.display === 'block' || profileModal.classList.contains('show'))) {
+                
+                // নাম আপডেট
+                let nameEls = document.querySelectorAll('#profile-user-name');
+                for(let i=0; i<nameEls.length; i++) nameEls[i].innerHTML = cName;
+
+                // ইমেইল আপডেট
+                let emailEls = document.querySelectorAll('#profile-user-email');
+                for(let i=0; i<emailEls.length; i++) emailEls[i].innerHTML = cEmail;
+
+                // লিংক আপডেট
+                let linkEls = document.querySelectorAll('#my-ref-link-display');
+                for(let i=0; i<linkEls.length; i++) {
+                    if (linkEls[i].value === 'Loading...') {
+                        linkEls[i].value = cLink;
+                    }
+                }
+            }
+        } catch(e) {
+            console.log("Bulldozer Error: ", e);
+        }
+    }, 1000); // প্রতি ১ সেকেন্ডে ধাক্কা দিয়ে আপডেট করবে
+</script>
+
+<div id="edit-profile-modal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 400px; position: relative;">
+            
+            <span onclick="document.getElementById('edit-profile-modal').style.display='none'; document.body.classList.remove('modal-open');" style="position: absolute; right: 15px; top: 10px; font-size: 28px; cursor: pointer; color: #ff3b30; font-weight: bold; z-index: 10;">&times;</span>
+            
+            <h2 style="color: var(--brand-color); margin-bottom: 20px; text-align: center;">Edit Profile</h2>
+            
+            <form id="edit-profile-form">
+                <div style="margin-bottom: 15px;">
+                    <label style="font-size: 13px; color: var(--text-dark);">Email Address</label>
+                    <input type="email" id="edit_email" readonly style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; margin-top: 5px; background: #f0f0f0; color: #888; cursor: not-allowed;" title="Email cannot be changed directly">
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <label style="font-size: 13px; color: var(--text-dark);">Full Name</label>
+                    <input type="text" id="edit_name" placeholder="Enter your full name" required style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; margin-top: 5px;">
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="font-size: 13px; color: var(--text-dark);">Phone Number</label>
+                    <input type="text" id="edit_phone" placeholder="Enter your phone number" required style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; margin-top: 5px;">
+                </div>
+
+                <button type="submit" style="width: 100%; background: var(--brand-color); color: white; border: none; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; margin-bottom: 15px;">Save Changes</button>
+            </form>
+
+            <hr style="border: 0; border-top: 1px solid #ddd; margin: 15px 0;">
+            
+            <button type="button" onclick="sendUserPasswordReset()" style="width: 100%; background: #fff; color: #dc3545; border: 2px solid #dc3545; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer;">🔐 Send Password Reset Link</button>
+
+        </div>
+    </div>
+
 </body>
 </html>
