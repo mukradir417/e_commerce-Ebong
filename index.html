@@ -418,6 +418,7 @@
                 <span class="wallet-amount-text" id="wallet-balance-display">💰 Balance</span>
             </div>
             <button id="manage-wallet-btn" style="background: #111; color: white; border: none; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer; display: none;">Manage</button>
+            <button id="direct-logout-btn" onclick="logoutUser()" style="display: none; background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 11px; box-shadow: 0 2px 5px rgba(220,53,69,0.3);">Logout</button>
         </div>
 
         <div class="header-center" style="flex: 2; text-align: center;">
@@ -451,7 +452,7 @@
                         <circle cx="12" cy="7" r="4"></circle>
                     </svg>
                 </button>
-                <button id="direct-logout-btn" style="display: none; background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 12px; transition: 0.3s; box-shadow: 0 2px 5px rgba(220,53,69,0.3);">Logout</button>
+                
                 
 <div class="dropdown-menu" id="user-dropdown-menu">
     <div style="padding: 10px 15px; border-bottom: 1px solid var(--border-color); background: var(--bg-light-grey);">
