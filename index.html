@@ -468,14 +468,7 @@
                 </div>
             </div>
 
-            <button class="icon-btn cart-icon" id="cart-btn" style="position: relative;">
-                <svg class="svg-icon" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <path d="M16 10a4 4 0 0 1-8 0"></path>
-                </svg>
-                <span class="cart-badge" id="cart-count" style="position: absolute; top: -5px; right: -8px; background: #e53935; color: white; font-size: 13px; min-width: 22px; height: 22px; display: flex; justify-content: center; align-items: center; border-radius: 50%; font-weight: 700; border: 3px solid #fff; box-shadow: 0 3px 8px rgba(0,0,0,0.2);">0</span>
-            </button>
+            
             
             <div class="notification-panel" id="notification-panel">
                 <div class="noti-header" style="display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #eee;">
@@ -1019,8 +1012,12 @@
     </section>
 
     <div class="floating-action-btn" style="display: flex; flex-direction: column; gap: 10px;">
+        <button id="cart-btn" onclick="openCart()" title="View Cart" style="background: #e53935; color: white; border: none; border-radius: 50%; width: 55px; height: 55px; font-size: 24px; cursor: pointer; box-shadow: 0 4px 15px rgba(229, 57, 53, 0.5); display: flex; justify-content: center; align-items: center; position: relative; transition: 0.3s; margin-bottom: 5px;">
+            🛒
+            <span id="cart-count" style="position: absolute; top: -5px; right: -5px; background: #fff; color: #e53935; font-size: 14px; min-width: 24px; height: 24px; display: flex; justify-content: center; align-items: center; border-radius: 50%; font-weight: 900; border: 2px solid #e53935; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">0</span>
+        </button>
         <button class="track-toggle-btn" id="open-tracker-modal" title="Track Your Order">🚚 Track</button>
-        <button class="review-toggle-btn" id="open-review-modal" title="Leave a Review">⭐ </button>
+
         <button class="chat-toggle-btn" id="open-chat-modal" title="Live Support" style="position: relative;">
             💬
             <span class="chat-unread-badge" id="user-chat-badge" style="display:none;">0</span>
@@ -1098,6 +1095,9 @@
                 <p style="font-size: 14px; color: #ccc; margin: 12px 0; word-break: break-word;" id="footer-address">📍 <strong>Address:</strong> Ashulia, Dhaka, Bangladesh</p>
                 <p style="font-size: 14px; color: #ccc; margin: 12px 0; word-break: break-word;" id="footer-phone">📞 <strong>Phone:</strong> +8801572-921697</p>
                 <p style="font-size: 14px; color: #ccc; margin: 12px 0; word-break: break-word;" id="footer-email">📧 <strong>Email:</strong> support@ebong.com</p>
+                <button id="open-review-modal" style="margin-top: 20px; background: transparent; color: #ffb800; border: 2px solid #ffb800; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px;" onmouseover="this.style.background='#ffb800'; this.style.color='#111';" onmouseout="this.style.background='transparent'; this.style.color='#ffb800';">
+                    ⭐ Leave a Review
+                </button>
             </div>
 
             <div style="grid-column: span 2;">
