@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Admin Dashboard | eBong</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -177,6 +177,74 @@
 
             .customer-stats { flex-direction: column; }
         }
+        
+/* ⭐ মোবাইল রেস্পন্সিভ CSS (শুধুমাত্র ছোট স্ক্রিনের জন্য) ⭐ */
+@media only screen and (max-width: 768px) {
+    
+    /* ১. ড্যাশবোর্ড লেআউট: সাইডবার উপরে, কন্টেন্ট নিচে */
+    #admin-dashboard {
+        flex-direction: column !important;
+    }
+    
+    /* ২. সাইডবার (মেনু): মোবাইলে উপরে পাশাপাশি স্ক্রল করা যাবে */
+    .sidebar {
+        width: 100% !important;
+        height: auto !important;
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding: 10px !important;
+        border-right: none !important;
+        border-bottom: 2px solid #eee;
+    }
+    .sidebar button {
+        margin: 0 5px 0 0 !important;
+        padding: 10px 15px !important;
+        font-size: 13px !important;
+    }
+
+    /* ৩. মেইন কন্টেন্ট এরিয়া */
+    .main-content {
+        width: 100% !important;
+        padding: 10px !important;
+        overflow-x: hidden;
+    }
+
+    /* ৪. টেবিল ম্যাজিক: ডানে-বামে স্লাইড/স্ক্রল করা যাবে */
+    .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+    table {
+        min-width: 600px; /* টেবিল আর চাপবে না, স্ক্রল হবে */
+    }
+
+    /* ৫. পপ-আপ (Modal) গুলো মোবাইলে ফিট করা */
+    .modal-content, .crm-modal-content {
+        width: 95% !important;
+        margin: 5% auto !important;
+        padding: 15px !important;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    /* ৬. ইনপুট বক্স ও বাটন সাইজ ঠিক করা */
+    input, select, textarea {
+        font-size: 14px !important; /* মোবাইলে টাইপ করতে সুবিধা হবে */
+    }
+    .stat-card {
+        width: 100% !important;
+        margin-bottom: 10px;
+    }
+    .stats-container {
+        flex-direction: column;
+    }
+}
+
     </style>
 </head>
 <body>

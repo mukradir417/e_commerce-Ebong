@@ -418,7 +418,7 @@
                 <span class="wallet-amount-text" id="wallet-balance-display">💰 Balance</span>
             </div>
             <button id="manage-wallet-btn" style="background: #111; color: white; border: none; padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer; display: none;">Manage</button>
-            <button id="direct-logout-btn" onclick="logoutUser()" style="display: none; background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 11px; box-shadow: 0 2px 5px rgba(220,53,69,0.3);">Logout</button>
+           
         </div>
 
         <div class="header-center" style="flex: 2; text-align: center;">
@@ -463,7 +463,9 @@
     <div class="dropdown-item" onclick="openProfileTab('address')">📍 Address Book</div>
     <div class="dropdown-item" onclick="openProfileTab('wishlist')">❤️ My Wishlist</div>
     
+    
     <div class="dropdown-item" onclick="openEditProfileModal()">✏️ Edit Profile</div>
+    <button id="direct-logout-btn" onclick="logoutUser()" style="display: none; background: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 11px; margin-left: 5px;">Logout</button>
 </div>
                 </div>
             </div>
