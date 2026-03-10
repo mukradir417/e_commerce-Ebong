@@ -374,6 +374,57 @@ function loadOrders() {
         tbody.innerHTML = '<tr><td colspan="4" style="color:red; text-align:center;">Error loading orders!</td></tr>';
     });
 }
+// ==========================================
+// ⭐ NEW: Multiple Order Delete Logic
+// ==========================================
+
+// সব চেকবক্স একসাথে মার্ক বা আনমার্ক করার জন্য
+window.toggleAllOrderCheckboxes = function() {
+    const selectAllBtn = document.getElementById('selectAllOrders');
+    const checkboxes = document.querySelectorAll('.main-order-cb');
+    
+    checkboxes.forEach(cb => {
+        cb.checked = selectAllBtn.checked;
+    });
+}
+
+// সিলেক্ট করা অর্ডারগুলো ডিলিট করার জন্য
+window.deleteSelectedOrders = async function() {
+    const selectedCheckboxes = document.querySelectorAll('.main-order-cb:checked');
+    
+    if (selectedCheckboxes.length === 0) {
+        alert("⚠️ Please select at least one order to delete!");
+        return;
+    }
+
+    if (!confirm(`Are you sure you want to permanently delete ${selectedCheckboxes.length} orders? This action cannot be undone!`)) {
+        return;
+    }
+
+    try {
+        const deletePromises = [];
+        
+        selectedCheckboxes.forEach(cb => {
+            const orderId = cb.value;
+            const docRef = doc(db, "orders", orderId); 
+            deletePromises.push(deleteDoc(docRef));
+        });
+
+        await Promise.all(deletePromises);
+        
+        alert(`✅ ${selectedCheckboxes.length} orders deleted successfully!`);
+        
+        // ডিলিট হওয়ার পর Select All আনচেক করে দেওয়া
+        document.getElementById('selectAllOrders').checked = false;
+
+        // আপনার অর্ডার টেবিল আবার রিলোড করা
+        loadOrders(); 
+        
+    } catch (error) {
+        console.error("Error deleting orders:", error);
+        alert("❌ Failed to delete orders: " + error.message);
+    }
+}
 
 window.searchOrders = function() {
     let input = document.getElementById("orderSearchInput").value.toUpperCase();
@@ -2689,5 +2740,97 @@ window.handleWalletRequest = async function(reqId, customerId, type, amount, act
             console.error(e);
             alert("System error occurred while processing request.");
         }
+    }
+}
+// ==========================================
+// ⭐ NEW: Banner Delete Function
+// ==========================================
+window.deleteBanner = async function(bannerNumber) {
+    if(confirm("⚠️ Are you sure you want to DELETE Banner " + bannerNumber + "? This will be removed from the live site immediately.")) {
+        try {
+            // Firebase a kon banner ta delete hobe tar nam ber kora
+            let fieldName = bannerNumber === 1 ? "bannerUrl" : "bannerUrl_" + bannerNumber;
+            
+            // Firebase theke banner er link muche fela (Empty kore deya)
+            await updateDoc(doc(db, "settings", "general"), {
+                [fieldName]: ""
+            });
+
+            // Admin panel er input box gulo faka kore deya
+            if(document.getElementById('s_banner_' + bannerNumber)) {
+                document.getElementById('s_banner_' + bannerNumber).value = '';
+            }
+            if(document.getElementById('s_banner_file_' + bannerNumber)) {
+                document.getElementById('s_banner_file_' + bannerNumber).value = '';
+            }
+
+            alert("🗑️ Banner " + bannerNumber + " Deleted Successfully! Live site theke muche gese.");
+        } catch(e) {
+            alert("Error deleting banner: " + e.message);
+        }
+    }
+}
+// ==========================================
+// 🔴 NEW: Delete All Activity Logs
+// ==========================================
+window.deleteAllLogs = async function() {
+    // ডিলিট করার আগে অ্যাডমিনকে একবার ওয়ার্নিং দেওয়া হবে
+    if(!confirm("⚠️ Are you sure you want to delete ALL activity logs? This action cannot be undone!")) {
+        return; 
+    }
+
+    const btn = document.querySelector('button[onclick="deleteAllLogs()"]');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = "⏳ Deleting...";
+    btn.disabled = true;
+
+    try {
+        // ১. ডাটাবেস থেকে সব লগ খুঁজে আনা
+        const logsSnapshot = await getDocs(collection(db, "activity_logs"));
+        
+        if (logsSnapshot.empty) {
+            alert("No logs found to delete!");
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            return;
+        }
+
+        // ২. লুপ চালিয়ে প্রতিটি লগ ডিলিট করা
+        const deletePromises = [];
+        logsSnapshot.forEach((logDoc) => {
+            const docRef = doc(db, "activity_logs", logDoc.id);
+            deletePromises.push(deleteDoc(docRef));
+        });
+
+        // ৩. সব ডিলিট হওয়া পর্যন্ত অপেক্ষা করা
+        await Promise.all(deletePromises);
+
+        alert("✅ All activity logs deleted successfully!");
+        
+        // লগগুলো আবার নতুন করে লোড করা (যাতে স্ক্রিন ক্লিয়ার হয়ে যায়)
+        if(typeof loadActivityLogs === 'function') {
+            loadActivityLogs(); 
+        }
+
+    } catch (error) {
+        console.error("Error deleting logs:", error);
+        alert("❌ Failed to delete logs: " + error.message);
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+window.toggleNewCategoryBox = function() {
+    const categorySelect = document.getElementById("p_category");
+    const customCategoryInput = document.getElementById("custom_category_input");
+
+    if (categorySelect.value === "add_new_category") {
+        customCategoryInput.style.display = "block";  // বক্সটি দেখাবে
+        customCategoryInput.required = true;          // নতুন ক্যাটাগরির নাম দেওয়া বাধ্যতামূলক করবে
+        customCategoryInput.focus();                  // সাথে সাথে টাইপ করার জন্য কার্সর চলে যাবে
+    } else {
+        customCategoryInput.style.display = "none";   // অন্য ক্যাটাগরি সিলেক্ট করলে বক্স লুকিয়ে যাবে
+        customCategoryInput.value = "";               // এবং ভেতরের লেখা মুছে যাবে
+        customCategoryInput.required = false;
     }
 }
