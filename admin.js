@@ -2,8 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebas
 import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, setDoc, deleteDoc, getDoc, onSnapshot, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 // 🔴 NEW: Import Firebase Auth
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-// ⭐ NEW: Import Firebase Storage for Direct Image Upload
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDXYobIjywCtH5_UgIhqaPiOCdVBJiEaks",
@@ -17,7 +15,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app); // 🔴 Auth Initialize
-const storage = getStorage(app); // ⭐ NEW: Storage Initialize
 
 window.allProductsList = []; // ⭐ NEW: Globally store products for CRM View
 let posCart = []; // ⭐ NEW: Array to hold items for POS
@@ -97,25 +94,40 @@ function loadAllData() {
 }
 
 // ==========================================
-// ⭐ NEW: Helper Function for Direct Image Upload
+// ⭐ NEW: Upload Image to Namecheap Hosting via PHP
 // ==========================================
 async function uploadImageToFirebase(fileInputId) {
     const fileInput = document.getElementById(fileInputId);
+    
     if (fileInput && fileInput.files && fileInput.files.length > 0) {
         const file = fileInput.files[0];
-        const fileName = `products/${Date.now()}_${file.name}`;
-        const storageRef = ref(storage, fileName);
+        const formData = new FormData();
+        formData.append("file", file);
+
+        // 🔴 আপনার আসল ডোমেইন নামটা এখানে দিন
+        const apiUrl = "https://ebong.online/upload.php"; 
+
         try {
-            const snapshot = await uploadBytes(storageRef, file);
-            const downloadUrl = await getDownloadURL(snapshot.ref);
-            return downloadUrl;
+            const response = await fetch(apiUrl, {
+                method: "POST",
+                body: formData
+            });
+            const result = await response.json();
+            
+            if (result.success) {
+                return result.url; // Namecheap থেকে সরাসরি ছবির লিংক ফেরত আসবে!
+            } else {
+                console.error("Upload failed:", result.message);
+                alert("Upload failed: " + result.message);
+                return null;
+            }
         } catch (error) {
-            console.error("Image upload failed:", error);
-            alert("Image upload failed: " + error.message);
+            console.error("API error:", error);
+            alert("Network error. Please check if your domain is correct.");
             return null;
         }
     }
-    return null; // Return null if no file selected
+    return null; // কোনো ছবি সিলেক্ট না করলে খালি ফেরত যাবে
 }
 
 
